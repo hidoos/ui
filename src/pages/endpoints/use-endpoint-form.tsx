@@ -98,9 +98,9 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
 
   const [modelSearch, setModelSearch] = useState("");
   const modelsData = useCustom({
-    url: `/search-models/${
+    url: `/workspaces/${workspace}/model_registries/${
       form.getValues().spec.model.registry
-    }?search=${modelSearch}`,
+    }/models?search=${modelSearch}`,
     method: "get",
     queryOptions: {
       enabled: Boolean(form.getValues().spec.model.registry),

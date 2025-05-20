@@ -323,35 +323,27 @@ export const dataProvider = (
     },
 
     custom: async ({ url, method, query, payload }) => {
-      if (
-        url.startsWith("/search-models") ||
-        url.startsWith("/serve-proxy") ||
-        url.startsWith("/rpc")
-      ) {
-        return fetch(`${postgrestClient.url}${url}`, {
-          method,
-          body: payload ? JSON.stringify(payload) : undefined,
-          headers: {
-            "Content-Type": "application/json",
-            ...postgrestClient.headers,
-          },
+      return fetch(`${postgrestClient.url}${url}`, {
+        method,
+        body: payload ? JSON.stringify(payload) : undefined,
+        headers: {
+          "Content-Type": "application/json",
+          ...postgrestClient.headers,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              `Error: ${res.status} ${res.statusText} ${res.url}`,
+            );
+          }
+          return res.json();
         })
-          .then((res) => {
-            if (!res.ok) {
-              throw new Error(
-                `Error: ${res.status} ${res.statusText} ${res.url}`,
-              );
-            }
-            return res.json();
-          })
-          .then((data) => {
-            return {
-              data,
-            };
-          });
-      }
-
-      throw Error("Not implemented on refine-postgrest data provider.");
+        .then((data) => {
+          return {
+            data,
+          };
+        });
     },
   };
 };
