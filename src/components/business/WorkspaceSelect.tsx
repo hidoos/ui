@@ -37,6 +37,7 @@ export default function WorkspaceSelect() {
         triggerClassName="w-[280px]"
         placeholder="Select a workspace"
         value={current}
+        allowUnselect={false}
         onChange={(value) => {
           const to = resource?.list
             ?.toString()
