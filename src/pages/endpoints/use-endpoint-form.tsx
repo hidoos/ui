@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Combobox as AsyncCombobox } from "@/components/ui/combobox";
 import { useWorkspace } from "@/components/theme/hooks";
 import { useCustom, useSelect } from "@refinedev/core";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import WorkspaceField from "@/components/business/WorkspaceField";
 import { CommandLoading } from "@/components/ui/command";
 import { Slider } from "@/components/ui/slider";
@@ -92,6 +92,12 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
   const { current: currentWorkspace } = useWorkspace();
   const [selectedModelCatalog, setSelectedModelCatalog] = useState<string>("");
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [modelSearch, setModelSearch] = useState("");
+
+  const previousValuesRef = useRef<{
+    currentModelName?: string;
+    currentRegistry?: string;
+  }>({});
 
   const form = useForm<Endpoint>({
     mode: "all",
@@ -145,10 +151,17 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
   });
 
   const workspace = form.watch("metadata.workspace");
+  const currentModelName = form.watch("spec.model.name");
+  const currentRegistry = form.watch("spec.model.registry");
+  const acceleratorValue = form.watch("spec.resources.accelerator");
+  const engineSpec = form.watch("spec.engine");
 
-  const meta = {
-    workspace,
-  };
+  const meta = useMemo(
+    () => ({
+      workspace,
+    }),
+    [workspace],
+  );
 
   const engines = useSelect<Engine>({
     resource: "engines",
@@ -170,11 +183,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     meta,
   });
 
-  const [modelSearch, setModelSearch] = useState("");
-
-  const currentModelName = form.watch("spec.model.name");
-  const currentRegistry = form.watch("spec.model.registry");
-
   const isEdit = action === "edit";
 
   // Auto-initialize model search with template model name when available
@@ -186,15 +194,15 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     return "";
   }, [modelSearch, currentRegistry, currentModelName, isEdit]);
 
+  const shouldFetchModels = Boolean(currentRegistry && effectiveModelSearch);
   const modelsData = useCustom({
     url: `/workspaces/${workspace}/model_registries/${currentRegistry}/models?search=${effectiveModelSearch}`,
     method: "get",
     queryOptions: {
-      enabled: Boolean(currentRegistry && effectiveModelSearch),
+      enabled: shouldFetchModels,
     },
   });
 
-  // Computed: Check if current model name exists in search results
   const isModelFoundInRegistry = useMemo(() => {
     if (!modelsData.data?.data || !currentModelName || !currentRegistry) {
       return false;
@@ -202,10 +210,49 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     return modelsData.data.data.some(
       (model: GeneralModel) => model.name === currentModelName,
     );
-  }, [modelsData.data, currentModelName, currentRegistry]);
+  }, [modelsData.data?.data, currentModelName, currentRegistry]);
 
-  // Custom validation effect for model availability
+  const { engineNames, engineVersions, engineTasks } = useMemo(() => {
+    const engineNames: string[] = [];
+    const engineVersions: Record<string, EngineVersion[]> = {};
+    const engineTasks: Record<string, string[]> = {};
+
+    for (const engine of engines.query.data?.data || []) {
+      engineNames.push(engine.metadata.name);
+      engineVersions[engine.metadata.name] = engine.spec.versions;
+      engineTasks[engine.metadata.name] = engine.spec.supported_tasks;
+    }
+
+    return {
+      engineNames,
+      engineVersions,
+      engineTasks,
+    };
+  }, [engines.query.data?.data]);
+
+  const engineValueSchema = useMemo(() => {
+    return engineSpec.engine
+      ? engineVersions[engineSpec.engine]?.find(
+          (v) => v.version === engineSpec.version,
+        )?.values_schema
+      : undefined;
+  }, [engineSpec.engine, engineSpec.version, engineVersions]);
+
   useEffect(() => {
+    const prev = previousValuesRef.current;
+
+    if (
+      prev.currentModelName === currentModelName &&
+      prev.currentRegistry === currentRegistry
+    ) {
+      return;
+    }
+
+    previousValuesRef.current = {
+      currentModelName,
+      currentRegistry,
+    };
+
     if (action === "create" && currentRegistry && currentModelName) {
       if (!isModelFoundInRegistry && modelsData.data) {
         form.setError("spec.model.name", {
@@ -224,32 +271,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     action,
     form,
   ]);
-
-  const { engineNames, engineVersions, engineTasks } = useMemo(() => {
-    const engineNames: string[] = [];
-    const engineVersions: Record<string, EngineVersion[]> = {};
-    const engineTasks: Record<string, string[]> = {};
-
-    for (const engine of engines.query.data?.data || []) {
-      engineNames.push(engine.metadata.name);
-      engineVersions[engine.metadata.name] = engine.spec.versions;
-      engineTasks[engine.metadata.name] = engine.spec.supported_tasks;
-    }
-
-    return {
-      engineNames,
-      engineVersions,
-      engineTasks,
-    };
-  }, [engines]);
-
-  const acceleratorValue = form.watch("spec.resources.accelerator");
-  const engineSpec = form.watch("spec.engine");
-  const engineValueSchema = engineSpec.engine
-    ? engineVersions[engineSpec.engine]?.find(
-        (v) => v.version === engineSpec.version,
-      )?.values_schema
-    : undefined;
 
   // Handle model catalog selection with merge logic
   const handleModelCatalogSelect = (catalogId: string) => {
@@ -321,13 +342,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     }
   };
 
-  console.log({
-    isModelFoundInRegistry,
-    currentRegistry,
-    currentModelName,
-    mdata: modelsData.data,
-  });
-
   return {
     form,
     metadataFields: (
@@ -384,6 +398,60 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
             />
           </Field>
         )}
+      </FormCardGrid>
+    ),
+    // Resource settings section - always visible
+    resourceFields: (
+      <FormCardGrid title="Resource Settings">
+        <Field {...form} name="spec.resources.cpu" label="CPU">
+          <div className="flex flex-col gap-2">
+            {form.watch("spec.resources.cpu")}
+            <Slider min={0} max={20} step={0.1} />
+          </div>
+        </Field>
+
+        <Field {...form} name="spec.resources.memory" label="Memory (GB)">
+          <div className="flex flex-col gap-2">
+            {form.watch("spec.resources.memory")}
+            <Slider min={0} max={50} step={0.5} />
+          </div>
+        </Field>
+
+        <Field {...form} name="-" label="GPU">
+          <Combobox
+            placeholder="Select GPU Type"
+            options={[
+              { label: "Generic", value: "-" },
+              { label: "L4", value: "NVIDIA_L4" },
+              { label: "T4", value: "NVIDIA_TESLA_T4" },
+            ]}
+            value={Object.keys(acceleratorValue)[0]}
+            onChange={(value) => {
+              form.setValue("spec.resources.accelerator", {
+                [value as string]:
+                  acceleratorValue[Object.keys(acceleratorValue)[0]],
+              });
+            }}
+          />
+        </Field>
+
+        <Field {...form} name="-" label="GPU Count">
+          <div className="flex flex-col gap-2">
+            {Object.values(acceleratorValue)[0] as number}
+            <Slider
+              min={0}
+              max={2}
+              step={0.5}
+              value={Object.values(acceleratorValue) as number[]}
+              onValueChange={(value) => {
+                form.setValue("spec.resources.accelerator", {
+                  [Object.keys(acceleratorValue)[0]]: value[0],
+                });
+                form.setValue("spec.resources.gpu", (value[0] as number) ?? 0);
+              }}
+            />
+          </div>
+        </Field>
       </FormCardGrid>
     ),
     // Collapsible customize section for both create and edit modes
@@ -456,61 +524,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
             </Field>
             <Field {...form} name="spec.model.file" label="Model File">
               <Input disabled={isEdit} />
-            </Field>
-          </FormCardGrid>
-
-          <FormCardGrid title="Resource Settings">
-            <Field {...form} name="spec.resources.cpu" label="CPU">
-              <div className="flex flex-col gap-2">
-                {form.watch("spec.resources.cpu")}
-                <Slider min={0} max={20} step={0.1} />
-              </div>
-            </Field>
-
-            <Field {...form} name="spec.resources.memory" label="Memory (GB)">
-              <div className="flex flex-col gap-2">
-                {form.watch("spec.resources.memory")}
-                <Slider min={0} max={50} step={0.5} />
-              </div>
-            </Field>
-
-            <Field {...form} name="-" label="GPU">
-              <Combobox
-                placeholder="Select GPU Type"
-                options={[
-                  { label: "Generic", value: "-" },
-                  { label: "L4", value: "NVIDIA_L4" },
-                  { label: "T4", value: "NVIDIA_TESLA_T4" },
-                ]}
-                value={Object.keys(acceleratorValue)[0]}
-                onChange={(value) => {
-                  form.setValue("spec.resources.accelerator", {
-                    [value as string]:
-                      acceleratorValue[Object.keys(acceleratorValue)[0]],
-                  });
-                }}
-              />
-            </Field>
-
-            <Field {...form} name="-" label="GPU Count">
-              <div className="flex flex-col gap-2">
-                {Object.values(acceleratorValue)[0] as number}
-                <Slider
-                  min={0}
-                  max={2}
-                  step={0.5}
-                  value={Object.values(acceleratorValue) as number[]}
-                  onValueChange={(value) => {
-                    form.setValue("spec.resources.accelerator", {
-                      [Object.keys(acceleratorValue)[0]]: value[0],
-                    });
-                    form.setValue(
-                      "spec.resources.gpu",
-                      (value[0] as number) ?? 0,
-                    );
-                  }}
-                />
-              </div>
             </Field>
           </FormCardGrid>
 
