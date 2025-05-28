@@ -259,9 +259,14 @@ export const VariablesInput = React.forwardRef<
                 <TableCell>
                   {availableSchemaKeys.length > 0 ? (
                     <div className="flex gap-2">
-                      <Select value={newKey} onValueChange={setNewKey}>
+                      <Select
+                        value={
+                          availableSchemaKeys.includes(newKey) ? newKey : ""
+                        }
+                        onValueChange={setNewKey}
+                      >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select or type key" />
+                          <SelectValue placeholder="Select from schema" />
                         </SelectTrigger>
                         <SelectContent>
                           {availableSchemaKeys.map((key) => (
@@ -273,7 +278,9 @@ export const VariablesInput = React.forwardRef<
                       </Select>
                       <Input
                         placeholder="Or type custom key"
-                        value={newKey}
+                        value={
+                          availableSchemaKeys.includes(newKey) ? "" : newKey
+                        }
                         onChange={(e) => setNewKey(e.target.value)}
                         className="w-full"
                       />
