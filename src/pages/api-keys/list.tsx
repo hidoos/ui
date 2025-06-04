@@ -1,15 +1,7 @@
-import { ListPage, ShowButton, Table, Combobox } from "@/components/theme";
-import { Edit, Trash2 } from "lucide-react";
+import { ListPage, Table, Combobox } from "@/components/theme";
+import { Copy, Check } from "lucide-react";
 import type { UseTableReturnType } from "@refinedev/react-table";
-import {
-  BaseRecord,
-  HttpError,
-  useCustomMutation,
-  useInvalidate,
-  useSelect,
-  useUserFriendlyName,
-} from "@refinedev/core";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useCustomMutation, useInvalidate, useSelect } from "@refinedev/core";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -31,6 +24,7 @@ import {
 import { useForm } from "@refinedev/react-hook-form";
 import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
 import { useApiKeyColumns } from "@/components/theme/table/columns/api-key-columns";
+import type { ApiKey } from "@/types";
 
 const CreateApiKeyForm = ({ onClose }: { onClose?: () => void }) => {
   const form = useForm({
@@ -43,11 +37,21 @@ const CreateApiKeyForm = ({ onClose }: { onClose?: () => void }) => {
   const workspaces = useSelect({
     resource: "workspaces",
   });
-  // TODO: use defined types
-  const [apiKey, setApiKey] = useState<any>(null);
+  const [apiKey, setApiKey] = useState<ApiKey | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { mutateAsync } = useCustomMutation();
   const invalidate = useInvalidate();
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
 
   const onSubmit = async (formValue: { name: string; workspace: string }) => {
     const { data } = await mutateAsync({
@@ -63,14 +67,59 @@ const CreateApiKeyForm = ({ onClose }: { onClose?: () => void }) => {
       resource: "api_keys",
       invalidates: ["list"],
     });
-    setApiKey(data);
+    setApiKey(data as ApiKey);
   };
 
   if (apiKey) {
     return (
-      <div>
-        <div>Secret Key: {apiKey.status.sk_value}</div>
-        <Button onClick={onClose}>Close</Button>
+      <div className="space-y-4">
+        <Alert className="border-green-200 bg-green-50">
+          <Check className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            API Key created successfully! Please copy your secret key now. You
+            won't be able to see it again.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Secret Key:</div>
+          <div className="relative">
+            <div className="p-3 bg-muted rounded-md border min-h-[60px] flex items-center">
+              <code className="text-sm break-all font-mono leading-relaxed">
+                {apiKey.status?.sk_value}
+              </code>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={() => {
+                if (apiKey?.status?.sk_value) {
+                  copyToClipboard(apiKey.status.sk_value);
+                }
+              }}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={onClose} className="w-full">
+            Close
+          </Button>
+        </DialogFooter>
       </div>
     );
   }
