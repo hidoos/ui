@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Form } from "@/components/ui/form";
 import { Combobox } from "@/components/ui/combobox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -112,12 +111,12 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
     },
   });
 
-  const models = [
-    {
-      label: "BAAI/bge-reranker-v2-m3",
-      value: "BAAI/bge-reranker-v2-m3",
-    },
-  ];
+  const models = (modelsData.data?.data?.data || []).map(
+    (v: { id: string }) => ({
+      label: v.id,
+      value: v.id,
+    }),
+  );
 
   // Function to add a new document
   const addDocument = () => {
@@ -163,7 +162,7 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
     setIsProcessing(true);
     try {
       const response = await fetch(
-        "http://192.168.24.139:8000/vllm/v1/rerank",
+        `/api/v1/serve-proxy/${endpoint?.metadata?.name}/v1/rerank`,
         {
           method: "POST",
           headers: {

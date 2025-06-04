@@ -160,8 +160,6 @@ export default function EmbeddingPlayground({
       return;
     }
 
-    const serviceUrl = endpoint.status?.service_url;
-
     const openai = createOpenAI({
       baseURL: `/api/v1/serve-proxy/${endpoint?.metadata?.name}/v1`,
       apiKey: "no",
