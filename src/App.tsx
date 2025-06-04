@@ -50,10 +50,7 @@ import {
   ModelRegistriesList,
   ModelRegistriesShow,
 } from "./pages/model-registries";
-import {
-  ModelCatalogsList,
-  ModelCatalogsShow,
-} from "./pages/model-catalogs";
+import { ModelCatalogsList, ModelCatalogsShow } from "./pages/model-catalogs";
 import {
   ImageRegistriesCreate,
   ImageRegistriesEdit,

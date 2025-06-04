@@ -1,0 +1,424 @@
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
+import { Combobox } from "@/components/ui/combobox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Trash2, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { useState } from "react";
+import { useCustom } from "@refinedev/core";
+import type { Endpoint } from "@/types";
+
+const getRankChangeDisplay = (change: number) => {
+  if (change > 0) {
+    return {
+      icon: (
+        <div className="h-3 w-3">
+          <ArrowUp className="h-3 w-3" />
+        </div>
+      ),
+      text: `+${change}`,
+      className: "text-green-600 dark:text-green-400",
+    };
+  }
+
+  if (change < 0) {
+    return {
+      icon: <ArrowDown className="h-3 w-3" />,
+      text: `${change}`,
+      className: "text-red-600 dark:text-red-400",
+    };
+  }
+
+  return {
+    icon: <Minus className="h-3 w-3" />,
+    text: "0",
+    className: "text-muted-foreground",
+  };
+};
+
+type FormValue = {
+  model: string;
+  query: string;
+};
+
+type Document = {
+  id: number;
+  text: string;
+  originalIndex: number;
+};
+
+type RankedDocument = Document & {
+  score: number;
+  rankChange: number;
+  newRank: number;
+};
+
+type RerankPlaygroundProps = {
+  endpoint: Endpoint;
+};
+
+export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
+  const [documents, setDocuments] = useState<Document[]>([
+    {
+      id: 1,
+      text: "Paris is the capital and largest city of France.",
+      originalIndex: 0,
+    },
+    {
+      id: 2,
+      text: "The Eiffel Tower is located in Paris and is one of the most famous landmarks.",
+      originalIndex: 1,
+    },
+    {
+      id: 3,
+      text: "London is the capital city of England and the United Kingdom.",
+      originalIndex: 2,
+    },
+    {
+      id: 4,
+      text: "The weather in Paris is generally mild with warm summers.",
+      originalIndex: 3,
+    },
+    {
+      id: 5,
+      text: "Berlin is the capital and largest city of Germany.",
+      originalIndex: 4,
+    },
+  ]);
+
+  const [rankedDocuments, setRankedDocuments] = useState<RankedDocument[]>([]);
+  const [activeTab, setActiveTab] = useState("documents");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const { ...form } = useForm({
+    mode: "all",
+    defaultValues: {
+      model: "",
+      query: "What is the capital of France?",
+    },
+  });
+
+  // Fetch available models
+  const modelsData = useCustom({
+    url: `/serve-proxy/${endpoint?.metadata?.name}/v1/models`,
+    method: "get",
+    queryOptions: {
+      enabled: Boolean(endpoint?.metadata?.name),
+    },
+  });
+
+  const models = [
+    {
+      label: "BAAI/bge-reranker-v2-m3",
+      value: "BAAI/bge-reranker-v2-m3",
+    },
+  ];
+
+  // Function to add a new document
+  const addDocument = () => {
+    const newId =
+      documents.length > 0 ? Math.max(...documents.map((d) => d.id)) + 1 : 1;
+    const newIndex = documents.length;
+    setDocuments([
+      ...documents,
+      { id: newId, text: "", originalIndex: newIndex },
+    ]);
+  };
+
+  // Function to update a document
+  const updateDocument = (id: number, text: string) => {
+    setDocuments(
+      documents.map((doc) => (doc.id === id ? { ...doc, text } : doc)),
+    );
+  };
+
+  // Function to remove a document
+  const removeDocument = (id: number) => {
+    const newDocuments = documents.filter((doc) => doc.id !== id);
+    // Update original indices
+    newDocuments.forEach((doc, index) => {
+      doc.originalIndex = index;
+    });
+    setDocuments(newDocuments);
+  };
+
+  // Function to rerank documents
+  const rerankDocuments = async (values: FormValue) => {
+    if (!values.model || !values.query) {
+      alert("Please select a model and enter a query");
+      return;
+    }
+
+    const validDocuments = documents.filter((doc) => doc.text.trim() !== "");
+    if (validDocuments.length === 0) {
+      alert("Please add at least one document");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(
+        "http://192.168.24.139:8000/vllm/v1/rerank",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: values.model,
+            query: values.query,
+            documents: validDocuments.map((doc) => doc.text),
+            top_n: 0, // Return all documents
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Check if we have valid rerank results
+      if (!data.results || !Array.isArray(data.results)) {
+        throw new Error("Invalid response format from rerank API");
+      }
+
+      // Create a map of original documents for easy lookup
+      const docMap = new Map(validDocuments.map((doc, idx) => [idx, doc]));
+
+      // Process the reranked results
+      const ranked: RankedDocument[] = data.results.map(
+        (result: any, newIndex: number) => {
+          const originalDoc = docMap.get(result.index);
+          if (!originalDoc) {
+            throw new Error(`Invalid document index: ${result.index}`);
+          }
+
+          const oldIndex = originalDoc.originalIndex;
+          const rankChange = oldIndex - newIndex;
+
+          return {
+            ...originalDoc,
+            score: result.relevance_score,
+            newRank: newIndex + 1,
+            rankChange,
+          };
+        },
+      );
+
+      setRankedDocuments(ranked);
+
+      setActiveTab("results");
+    } catch (error) {
+      console.error("Error reranking documents:", error);
+      alert(
+        "Failed to rerank documents. Please check the console for details.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Function to clear all
+  const clearAll = () => {
+    setDocuments([]);
+    setRankedDocuments([]);
+    form.setValue("query", "");
+  };
+
+  return (
+    <Form {...form}>
+      <div className="h-full overflow-auto">
+        <div className="h-full flex-col">
+          <div className="container h-full py-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Reranking</h2>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isProcessing}
+                  onClick={() => form.handleSubmit(rerankDocuments)()}
+                >
+                  {isProcessing ? "Processing..." : "Rerank"}
+                </Button>
+                <Button type="button" variant="outline" onClick={clearAll}>
+                  Clear
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_300px]">
+              <div className="flex-col space-y-4 sm:flex md:order-2">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="model">Model</Label>
+                    <Controller
+                      name="model"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Combobox
+                          placeholder="Select a reranker model"
+                          triggerClassName="sm:w-[300px]"
+                          popoverClassName="w-[300px]"
+                          options={models}
+                          {...field}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="query">Query</Label>
+                    <Controller
+                      name="query"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Textarea
+                          {...field}
+                          placeholder="Enter your search query..."
+                          className="min-h-24"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:order-1 space-y-6">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="documents">Documents</TabsTrigger>
+                    <TabsTrigger value="results">Results</TabsTrigger>
+                    <TabsTrigger value="json">JSON</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="results" className="mt-4">
+                    <ScrollArea className="h-[600px] rounded-md border">
+                      <div className="p-4 space-y-4">
+                        {rankedDocuments.length > 0 ? (
+                          rankedDocuments.map((doc, index) => {
+                            const changeDisplay = getRankChangeDisplay(
+                              doc.rankChange,
+                            );
+                            return (
+                              <div
+                                key={doc.id}
+                                className="p-2 border rounded-lg space-y-3 hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex-none w-6 h-6 flex items-center justify-center bg-primary text-primary-foreground rounded-full font-semibold">
+                                      {doc.newRank}
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span
+                                        className={`flex items-center space-x-1 text-sm font-medium ${changeDisplay.className}`}
+                                      >
+                                        {changeDisplay.icon}
+                                        <span>{changeDisplay.text}</span>
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        (was #{doc.originalIndex + 1})
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <Badge variant="secondary">
+                                    Score: {doc.score.toFixed(4)}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm">{doc.text}</p>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground py-20">
+                            No results yet. Add documents and click "Rerank" to
+                            see results.
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+
+                  <TabsContent value="documents" className="mt-4">
+                    <ScrollArea className="h-[600px] rounded-md border">
+                      <div className="p-4 space-y-4">
+                        {documents.map((doc, index) => (
+                          <div
+                            key={doc.id}
+                            className="flex items-start space-x-2"
+                          >
+                            <div className="flex-none w-8 h-8 flex items-center justify-center bg-muted text-muted-foreground rounded text-sm">
+                              {index + 1}
+                            </div>
+                            <Textarea
+                              value={doc.text}
+                              onChange={(e) =>
+                                updateDocument(doc.id, e.target.value)
+                              }
+                              placeholder="Enter document text..."
+                              className="flex-1 min-h-20"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeDocument(doc.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={addDocument}
+                        >
+                          <Plus className="h-4 w-4 mr-2" /> Add Document
+                        </Button>
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+
+                  <TabsContent value="json" className="mt-4">
+                    <ScrollArea className="h-[600px] rounded-md border">
+                      <pre className="p-4 text-xs bg-muted/30 text-foreground rounded">
+                        {JSON.stringify(
+                          {
+                            query: form.getValues().query,
+                            results: rankedDocuments.map((doc) => ({
+                              rank: doc.newRank,
+                              relevance_score: doc.score,
+                              document: { text: doc.text },
+                              rankChange: doc.rankChange,
+                              originalRank: doc.originalIndex + 1,
+                            })),
+                          },
+                          null,
+                          2,
+                        )}
+                      </pre>
+                    </ScrollArea>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Form>
+  );
+}

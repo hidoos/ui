@@ -63,25 +63,7 @@ const deepMerge = (
         sourceValue as Record<string, unknown>,
       );
     } else {
-      // Smart override logic: only replace if target is "empty" or default
-      const shouldOverride =
-        targetValue === "" ||
-        targetValue === null ||
-        targetValue === undefined ||
-        (typeof targetValue === "number" && targetValue === 0) ||
-        (typeof targetValue === "string" && targetValue.trim() === "") ||
-        (Array.isArray(targetValue) && targetValue.length === 0) ||
-        (typeof targetValue === "object" &&
-          targetValue !== null &&
-          Object.keys(targetValue as Record<string, unknown>).length === 0) ||
-        // Special case for default values
-        (key === "version" && targetValue === "latest") ||
-        (key === "type" && targetValue === "consistent_hash"); // Default scheduler type
-
-      if (shouldOverride) {
-        result[key] = sourceValue;
-      }
-      // If target has a meaningful value, keep it (user's preference)
+      result[key] = sourceValue;
     }
   }
 

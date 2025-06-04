@@ -19,6 +19,7 @@ import EndpointEngine from "@/components/business/EndpointEngine";
 import JSONSchemaValueVisualizer from "@/components/business/JsonSchemaValueVisualizer";
 import Loader from "@/components/theme/components/loader";
 import { useCallback, useRef } from "react";
+import RerankPlayground from "@/components/business/RerankPlayground";
 
 const RayDashboardTab = ({ record }: { record: Endpoint }) => {
   const { data: clusterData, isLoading } = useList({
@@ -153,9 +154,14 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
                 <ShowPage.Row title={"Engine"}>
                   <EndpointEngine {...record} />
                 </ShowPage.Row>
-                <div className="col-span-2">
+                <div>
                   <ShowPage.Row title={"Model"}>
                     <EndpointModel model={record.spec.model} />
+                  </ShowPage.Row>
+                </div>
+                <div>
+                  <ShowPage.Row title={"Task"}>
+                    {record.spec.model.task}
                   </ShowPage.Row>
                 </div>
               </div>
@@ -225,6 +231,8 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
         >
           {record.spec.model.task === "text-embedding" ? (
             <EmbeddingPlayground endpoint={record} />
+          ) : record.spec.model.task === "text-rerank" ? (
+            <RerankPlayground endpoint={record} />
           ) : (
             <ChatPlayground endpoint={record} />
           )}
