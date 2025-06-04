@@ -16,6 +16,7 @@ export const ModelCatalogsList = () => {
         {modelCatalogColumns.status}
         {metadataColumns.update_timestamp}
         {metadataColumns.creation_timestamp}
+        {modelCatalogColumns.action}
       </Table>
     </ListPage>
   );

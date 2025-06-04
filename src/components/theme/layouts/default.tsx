@@ -1,4 +1,4 @@
-import { ModeToggle, AppSidebar } from "@/components/theme/components";
+import { AppSidebar } from "@/components/theme/components";
 import { cn } from "@/lib/utils";
 import type { LayoutProps } from "@/components/theme/types";
 import { BaseLayout } from "./base";
@@ -32,13 +32,10 @@ export const DefaultLayout = ({
                 {navbar?.leftSide}
               </div>
             )}
-            {navbar?.rightSide ? (
+            {navbar?.rightSide && (
               <div className="flex items-center justify-end flex-1">
-                {<ModeToggle />}
                 {navbar?.rightSide}
               </div>
-            ) : (
-              <ModeToggle />
             )}
           </header>
           <main className="grow px-4 py-2 flex flex-col overflow-auto">

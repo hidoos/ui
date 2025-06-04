@@ -16,6 +16,7 @@ import {
   DefaultLayout,
   BaseLayout,
   notificationProvider,
+  ModeToggle,
 } from "@/components/theme";
 
 import "./global.css";
@@ -83,6 +84,7 @@ import { ApiKeysList } from "./pages/api-keys";
 import { ApiKeysShow } from "./pages/api-keys/show";
 import { UserDropdown } from "./components/business/UserDropdown";
 import WorkspaceSelect from "./components/business/WorkspaceSelect";
+import { YamlImportButton } from "./components/business/YamlImportButton";
 import Dashboard from "./pages/dashboard/Dashboard";
 
 const resources: ResourceProps[] = [
@@ -314,6 +316,10 @@ function App({ i18nProvider }: { i18nProvider: I18nProvider }) {
                         ),
                         rightSide: (
                           <>
+                            <div className="mr-2">
+                              <YamlImportButton />
+                            </div>
+                            <ModeToggle />
                             <UserDropdown />
                           </>
                         ),

@@ -1,6 +1,7 @@
 import type { ModelCatalogPhase } from "@/types";
 import { Table } from "..";
 import ModelCatalogStatus from "@/components/business/ModelCatalogStatus";
+import { Trash2 } from "lucide-react";
 
 export const useModelCatalogColumns = () => {
   return {
@@ -30,6 +31,22 @@ export const useModelCatalogColumns = () => {
           const phase = getValue() as unknown as ModelCatalogPhase;
           return <ModelCatalogStatus phase={phase} />;
         }}
+      />
+    ),
+    action: (
+      <Table.Column
+        accessorKey={"id"}
+        id={"actions"}
+        cell={({ row: { original } }) => (
+          <Table.Actions>
+            <Table.DeleteAction
+              title="Delete"
+              row={original}
+              resource="model_catalogs"
+              icon={<Trash2 size={16} />}
+            />
+          </Table.Actions>
+        )}
       />
     ),
   };

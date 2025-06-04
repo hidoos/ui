@@ -36,7 +36,7 @@ export const ModelCatalogsShow = () => {
   )?.values_schema;
 
   return (
-    <ShowPage record={record} canDelete={false} canEdit={false}>
+    <ShowPage record={record} canEdit={false}>
       <div className="overflow-auto h-full">
         <MetadataCard metadata={record.metadata} />
 
