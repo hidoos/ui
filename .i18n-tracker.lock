@@ -56,6 +56,14 @@
   "src/pages/model-registries/index.ts": "bb60ca534ab6db504627ceae7bca30ac",
   "src/pages/model-registries/list.tsx": "6f226a991e219ddb86e56cff0a3b2123",
   "src/pages/model-registries/show.tsx": "00118a20832c5f653c44051bdafc8824",
-  "src/pages/model-registries/use-model-registry-form.tsx": "aecbb6d575caf8843bb0ad5e33060b60",
-  "src/pages/model-catalogs/index.ts": "379fc05216cb708cdb47dc5b4b0e0d40"
+  "src/pages/model-registries/use-model-registry-form.tsx": "3b45c6234c38409dee1702556aa034ca",
+  "src/pages/model-catalogs/index.ts": "379fc05216cb708cdb47dc5b4b0e0d40",
+  "src/pages/model-catalogs/list.tsx": "b334174093e2c180c7ef0b3d83a86c46",
+  "src/pages/model-catalogs/show.tsx": "8628c6b693b03732805e6eb0d8fa6f9d",
+  "src/pages/image-registries/create.tsx": "7173570320138ca29483335ec657badb",
+  "src/pages/image-registries/edit.tsx": "b7027606ff0b25ba6a8c9568aac24be2",
+  "src/pages/image-registries/index.ts": "bb60ca534ab6db504627ceae7bca30ac",
+  "src/pages/image-registries/list.tsx": "4d7547cd77203dd35db271b678eb2564",
+  "src/pages/image-registries/show.tsx": "9878dd1a2bccc029bdadd13254f0b60d",
+  "src/pages/image-registries/use-image-registry-form.tsx": "d5e155e8e91f65dce689a1b9ec0c4bd3"
 }

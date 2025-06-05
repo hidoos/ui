@@ -6,12 +6,14 @@ import FormCardGrid from "@/components/business/FormCardGrid";
 import { Input } from "@/components/ui/input";
 import WorkspaceField from "@/components/business/WorkspaceField";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/lib/i18n";
 
 export const useImageRegistryForm = ({
   action,
 }: {
   action: "create" | "edit";
 }) => {
+  const { t } = useTranslation();
   const { current: currentWorkspace } = useWorkspace();
   const form = useForm<ImageRegistry>({
     mode: "all",
@@ -46,40 +48,69 @@ export const useImageRegistryForm = ({
   return {
     form,
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="Image Registry Name" disabled={isEdit} />
+      <FormCardGrid title={t("image_registries.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={t("image_registries.fields.name")}
+        >
+          <Input
+            placeholder={t("image_registries.placeholders.registryName")}
+            disabled={isEdit}
+          />
         </Field>
-        <Field {...form} name="metadata.workspace" label="Workspace">
+        <Field
+          {...form}
+          name="metadata.workspace"
+          label={t("image_registries.fields.workspace")}
+        >
           <WorkspaceField disabled={isEdit} />
         </Field>
       </FormCardGrid>
     ),
     specFields: (
       <>
-        <FormCardGrid title="Image Registry">
-          <Field {...form} name="spec.url" label="URL">
-            <Input placeholder="e.g https://index.docker.io/v1" />
+        <FormCardGrid title={t("image_registries.fields.imageRegistry")}>
+          <Field
+            {...form}
+            name="spec.url"
+            label={t("image_registries.fields.url")}
+          >
+            <Input placeholder={t("image_registries.placeholders.dockerUrl")} />
           </Field>
-          <Field {...form} name="spec.repository" label="Repository">
+          <Field
+            {...form}
+            name="spec.repository"
+            label={t("image_registries.fields.repository")}
+          >
             <Input />
           </Field>
           <div className="col-span-2" />
           <Field
             {...form}
             name="spec.ca"
-            label="Certificate Authority"
-            description="CA certificate for a self-signed registry"
+            label={t("image_registries.fields.certificateAuthority")}
+            description={t(
+              "image_registries.descriptions.certificateAuthority",
+            )}
             className="col-span-2"
           >
             <Textarea />
           </Field>
         </FormCardGrid>
-        <FormCardGrid title="Authentication">
-          <Field {...form} name="spec.authconfig.username" label="Username">
+        <FormCardGrid title={t("image_registries.fields.authentication")}>
+          <Field
+            {...form}
+            name="spec.authconfig.username"
+            label={t("image_registries.fields.username")}
+          >
             <Input />
           </Field>
-          <Field {...form} name="spec.authconfig.password" label="Password">
+          <Field
+            {...form}
+            name="spec.authconfig.password"
+            label={t("image_registries.fields.password")}
+          >
             <Input type="password" />
           </Field>
           <div className="col-span-2" />
@@ -87,8 +118,8 @@ export const useImageRegistryForm = ({
           <Field
             {...form}
             name="spec.authconfig.auth"
-            label="Base64 Auth"
-            description="Base64 encoded username:password"
+            label={t("image_registries.fields.base64Auth")}
+            description={t("image_registries.descriptions.base64Auth")}
             className="col-span-4"
           >
             <Input type="password" />

@@ -208,10 +208,53 @@
 		}
 	},
 	"model_catalogs": {
-		"title": "模型目录"
+		"title": "模型目录",
+		"fields": {
+			"status": "状态",
+			"lastTransition": "最后转换",
+			"errorMessage": "错误信息",
+			"engine": "引擎",
+			"model": "模型",
+			"task": "任务",
+			"registry": "仓库",
+			"modelFile": "模型文件",
+			"resources": "资源",
+			"gpu": "GPU",
+			"cpu": "CPU",
+			"memory": "内存",
+			"replica": "副本",
+			"scheduler": "调度器",
+			"variables": "变量"
+		},
+		"values": {
+			"powerOfTwo": "二的幂"
+		}
 	},
 	"image_registries": {
-		"title": "容器镜像仓库"
+		"title": "容器镜像仓库",
+		"fields": {
+			"basicInformation": "基本信息",
+			"name": "名称",
+			"workspace": "工作空间",
+			"imageRegistry": "镜像仓库",
+			"url": "URL",
+			"repository": "仓库",
+			"certificateAuthority": "证书颁发机构",
+			"authentication": "身份验证",
+			"username": "用户名",
+			"password": "密码",
+			"base64Auth": "Base64 认证",
+			"status": "状态",
+			"repo": "仓库"
+		},
+		"placeholders": {
+			"registryName": "镜像仓库名称",
+			"dockerUrl": "例如 https://index.docker.io/v1"
+		},
+		"descriptions": {
+			"certificateAuthority": "自签名仓库的 CA 证书",
+			"base64Auth": "Base64 编码的用户名:密码"
+		}
 	},
 	"engines": {
 		"title": "推理引擎"

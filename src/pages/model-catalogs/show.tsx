@@ -8,8 +8,10 @@ import Loader from "@/components/theme/components/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ModelCatalog, Engine } from "@/types";
 import { useShow, useOne } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const ModelCatalogsShow = () => {
+  const { t } = useTranslation();
   const {
     query: { data, isLoading },
   } = useShow<ModelCatalog>({});
@@ -28,7 +30,7 @@ export const ModelCatalogsShow = () => {
   }
 
   if (!record) {
-    return <div>404 not found</div>;
+    return <div>{t("pages.error.notFound")}</div>;
   }
 
   const engineVersionSchema = engineData?.data?.spec.versions.find(
@@ -43,11 +45,11 @@ export const ModelCatalogsShow = () => {
         <Card className="mt-4">
           <CardContent>
             <div className="grid grid-cols-4 gap-8">
-              <ShowPage.Row title={"Status"}>
+              <ShowPage.Row title={t("model_catalogs.fields.status")}>
                 <ModelCatalogStatus phase={record.status?.phase} />
               </ShowPage.Row>
               {record.status?.last_transition_time && (
-                <ShowPage.Row title={"Last Transition"}>
+                <ShowPage.Row title={t("model_catalogs.fields.lastTransition")}>
                   {new Date(
                     record.status.last_transition_time,
                   ).toLocaleString()}
@@ -55,7 +57,7 @@ export const ModelCatalogsShow = () => {
               )}
             </div>
             {record.status?.error_message && (
-              <ShowPage.Row title={"Error Message"}>
+              <ShowPage.Row title={t("model_catalogs.fields.errorMessage")}>
                 <span className="text-destructive">
                   {record.status.error_message}
                 </span>
@@ -67,20 +69,20 @@ export const ModelCatalogsShow = () => {
         <Card className="mt-4">
           <CardContent>
             <div className="grid grid-cols-4 gap-8">
-              <ShowPage.Row title={"Engine"}>
+              <ShowPage.Row title={t("model_catalogs.fields.engine")}>
                 {record.spec.engine.engine}:{record.spec.engine.version}
               </ShowPage.Row>
               <div className="col-span-2">
-                <ShowPage.Row title={"Model"}>
+                <ShowPage.Row title={t("model_catalogs.fields.model")}>
                   <EndpointModel model={record.spec.model} />
                 </ShowPage.Row>
               </div>
-              <ShowPage.Row title={"Task"}>
+              <ShowPage.Row title={t("model_catalogs.fields.task")}>
                 <ModelTask task={record.spec.model.task} />
               </ShowPage.Row>
             </div>
             <div className="grid grid-cols-4 gap-8">
-              <ShowPage.Row title={"Registry"}>
+              <ShowPage.Row title={t("model_catalogs.fields.registry")}>
                 <ShowButton
                   recordItemId={record.spec.model.registry}
                   meta={{
@@ -92,7 +94,7 @@ export const ModelCatalogsShow = () => {
                   {record.spec.model.registry}
                 </ShowButton>
               </ShowPage.Row>
-              <ShowPage.Row title={"Model File"}>
+              <ShowPage.Row title={t("model_catalogs.fields.modelFile")}>
                 {record.spec.model.file}
               </ShowPage.Row>
             </div>
@@ -101,19 +103,19 @@ export const ModelCatalogsShow = () => {
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>Resources</CardTitle>
+            <CardTitle>{t("model_catalogs.fields.resources")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-8">
-              <ShowPage.Row title="GPU">
+              <ShowPage.Row title={t("model_catalogs.fields.gpu")}>
                 {Object.values(record.spec.resources?.accelerator || {})[0] ??
                   record.spec.resources?.gpu ??
                   "-"}
               </ShowPage.Row>
-              <ShowPage.Row title="CPU">
+              <ShowPage.Row title={t("model_catalogs.fields.cpu")}>
                 {record.spec.resources?.cpu ?? "-"}
               </ShowPage.Row>
-              <ShowPage.Row title="Memory">
+              <ShowPage.Row title={t("model_catalogs.fields.memory")}>
                 {record.spec.resources?.memory ?? "-"}
               </ShowPage.Row>
             </div>
@@ -131,10 +133,10 @@ export const ModelCatalogsShow = () => {
         <Card className="mt-4">
           <CardContent>
             <div className="grid grid-cols-4 gap-8">
-              <ShowPage.Row title="Replica">
+              <ShowPage.Row title={t("model_catalogs.fields.replica")}>
                 {record.spec.replicas?.num ?? 1}
               </ShowPage.Row>
-              <ShowPage.Row title="Scheduler">
+              <ShowPage.Row title={t("model_catalogs.fields.scheduler")}>
                 {typeof record.spec.deployment_options === "object" &&
                 record.spec.deployment_options &&
                 "scheduler" in record.spec.deployment_options &&
@@ -142,7 +144,7 @@ export const ModelCatalogsShow = () => {
                 record.spec.deployment_options.scheduler &&
                 "type" in record.spec.deployment_options.scheduler
                   ? String(record.spec.deployment_options.scheduler.type)
-                  : "Power of two"}
+                  : t("model_catalogs.values.powerOfTwo")}
               </ShowPage.Row>
             </div>
           </CardContent>
@@ -151,7 +153,7 @@ export const ModelCatalogsShow = () => {
         {engineVersionSchema && record.spec.variables && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>Variables</CardTitle>
+              <CardTitle>{t("model_catalogs.fields.variables")}</CardTitle>
             </CardHeader>
             <CardContent>
               <JSONSchemaValueVisualizer

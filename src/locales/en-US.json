@@ -208,10 +208,53 @@
 		}
 	},
 	"model_catalogs": {
-		"title": "Model Catalogs"
+		"title": "Model Catalogs",
+		"fields": {
+			"status": "Status",
+			"lastTransition": "Last Transition",
+			"errorMessage": "Error Message",
+			"engine": "Engine",
+			"model": "Model",
+			"task": "Task",
+			"registry": "Registry",
+			"modelFile": "Model File",
+			"resources": "Resources",
+			"gpu": "GPU",
+			"cpu": "CPU",
+			"memory": "Memory",
+			"replica": "Replica",
+			"scheduler": "Scheduler",
+			"variables": "Variables"
+		},
+		"values": {
+			"powerOfTwo": "Power of two"
+		}
 	},
 	"image_registries": {
-		"title": "Image Registries"
+		"title": "Image Registries",
+		"fields": {
+			"basicInformation": "Basic Information",
+			"name": "Name",
+			"workspace": "Workspace",
+			"imageRegistry": "Image Registry",
+			"url": "URL",
+			"repository": "Repository",
+			"certificateAuthority": "Certificate Authority",
+			"authentication": "Authentication",
+			"username": "Username",
+			"password": "Password",
+			"base64Auth": "Base64 Auth",
+			"status": "Status",
+			"repo": "Repo"
+		},
+		"placeholders": {
+			"registryName": "Image Registry Name",
+			"dockerUrl": "e.g https://index.docker.io/v1"
+		},
+		"descriptions": {
+			"certificateAuthority": "CA certificate for a self-signed registry",
+			"base64Auth": "Base64 encoded username:password"
+		}
 	},
 	"engines": {
 		"title": "Engines"

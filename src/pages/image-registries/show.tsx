@@ -5,8 +5,10 @@ import Loader from "@/components/theme/components/loader";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ImageRegistry } from "@/types";
 import { useShow } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const ImageRegistriesShow = () => {
+  const { t } = useTranslation();
   const {
     query: { data, isLoading },
   } = useShow<ImageRegistry>();
@@ -17,7 +19,7 @@ export const ImageRegistriesShow = () => {
   }
 
   if (!record) {
-    return <div>404 not found</div>;
+    return <div>{t("pages.error.notFound")}</div>;
   }
 
   return (
@@ -25,11 +27,11 @@ export const ImageRegistriesShow = () => {
       <MetadataCard metadata={record.metadata} />
       <Card className="mt-4">
         <CardContent>
-          <ShowPage.Row title={"Status"}>
+          <ShowPage.Row title={t("image_registries.fields.status")}>
             <ImageRegistryStatus phase={record.status?.phase} />
           </ShowPage.Row>
           <div className="grid grid-cols-4 gap-8">
-            <ShowPage.Row title={"Repo"}>
+            <ShowPage.Row title={t("image_registries.fields.repo")}>
               {record.spec.url}/{record.spec.repository}
             </ShowPage.Row>
           </div>
