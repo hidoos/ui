@@ -11,6 +11,7 @@ import type { PopoverContentProps } from "@radix-ui/react-popover";
 import {
   type BaseOption,
   type BaseRecord,
+  type CrudFilter,
   type HttpError,
   useTranslate,
 } from "@refinedev/core";
@@ -24,6 +25,8 @@ import {
   type Column,
   type ColumnDef,
   type ColumnDefTemplate,
+  type Row,
+  type Cell,
   type TableOptionsResolved,
   flexRender,
 } from "@tanstack/react-table";
@@ -93,6 +96,15 @@ export type TableProps<
 > = Partial<UseTableProps<TData, TError, TData>> & {
   children?: ReactElement<ColumnProps<TData, TError>>[];
   showHeader?: boolean;
+  filters?:
+    | ReactElement
+    | ((props: {
+        filters: CrudFilter[];
+        setFilters: (
+          filters: CrudFilter[],
+          behavior?: "merge" | "replace",
+        ) => void;
+      }) => ReactElement);
 };
 
 export function Table<
@@ -103,6 +115,7 @@ export function Table<
   children,
   showHeader = true,
   columns = [],
+  filters,
   ...props
 }: TableProps<TData, TError>) {
   const t = useTranslate();
@@ -116,7 +129,7 @@ export function Table<
       filter,
       cell,
     }: ColumnProps<TData, TError>): ColumnDef<TData> => {
-      const column: any = {
+      const column: ColumnDef<TData> = {
         id,
         header,
         accessorKey,
@@ -124,8 +137,8 @@ export function Table<
         enableHiding: enableHiding ?? false,
         enableColumnFilter: true,
         enableResizing: true,
-        filter,
-      };
+        ...((filter as FC<TableFilterProps<TData>>) && { filter }),
+      } as ColumnDef<TData>;
 
       if (cell) {
         column.cell = cell;
@@ -171,7 +184,17 @@ export function Table<
   return (
     <DeleteProvider>
       <div className="space-y-4">
-        <DataTableToolbar table={table} />
+        <DataTableToolbar
+          table={table}
+          filters={
+            typeof filters === "function"
+              ? filters({
+                  filters: table.refineCore.filters,
+                  setFilters: table.refineCore.setFilters,
+                })
+              : filters
+          }
+        />
         <div className="rounded-md border border-border">
           <TableUi>
             {showHeader && (
@@ -221,12 +244,12 @@ export function Table<
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row: any) => (
+                table.getRowModel().rows.map((row: Row<TData>) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                   >
-                    {row.getVisibleCells().map((cell: any) => (
+                    {row.getVisibleCells().map((cell: Cell<TData, unknown>) => (
                       <TableCell key={cell.id} className="text-nowrap">
                         {flexRender(
                           cell.column.columnDef.cell,

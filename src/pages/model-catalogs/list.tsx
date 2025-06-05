@@ -1,3 +1,4 @@
+import { ModelTaskFilter } from "@/components/business/ModelTaskFilter";
 import { ListPage, Table } from "@/components/theme";
 import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
 import { useModelCatalogColumns } from "@/components/theme/table/columns/model-catalog-columns";
@@ -8,7 +9,13 @@ export const ModelCatalogsList = () => {
 
   return (
     <ListPage canCreate={false}>
-      <Table enableSorting enableFilters>
+      <Table
+        enableSorting
+        enableFilters
+        filters={({ filters, setFilters }) => (
+          <ModelTaskFilter filters={filters} setFilters={setFilters} />
+        )}
+      >
         {metadataColumns.name}
         {metadataColumns.workspace}
         {modelCatalogColumns.model}

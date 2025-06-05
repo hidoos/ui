@@ -1,3 +1,4 @@
+import { ModelTaskFilter } from "@/components/business/ModelTaskFilter";
 import { ListPage, Table } from "@/components/theme";
 import { useEndpointColumns } from "@/components/theme/table/columns/endpoint-columns";
 import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
@@ -8,7 +9,13 @@ export const EndpointsList = () => {
 
   return (
     <ListPage title="Endpoints" breadcrumb={false}>
-      <Table enableSorting enableFilters>
+      <Table
+        enableSorting
+        enableFilters
+        filters={({ filters, setFilters }) => (
+          <ModelTaskFilter filters={filters} setFilters={setFilters} />
+        )}
+      >
         {metadataColumns.name}
         {metadataColumns.workspace}
         {endpointColumns.status}
