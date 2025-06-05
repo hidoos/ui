@@ -6,8 +6,10 @@ import { useRoleAssignmentColumns } from "@/components/theme/table/columns/role-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { UserProfile } from "@/types";
 import { useShow } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const UsersShow = () => {
+  const { t } = useTranslation();
   const {
     query: { data, isLoading },
   } = useShow<UserProfile>();
@@ -29,7 +31,7 @@ export const UsersShow = () => {
       <MetadataCard metadata={record.metadata} />
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle>Global Roles</CardTitle>
+          <CardTitle>{t("user_profiles.sections.globalRoles")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table
@@ -58,7 +60,7 @@ export const UsersShow = () => {
       </Card>
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle>Joined Workspaces</CardTitle>
+          <CardTitle>{t("user_profiles.sections.joinedWorkspaces")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table

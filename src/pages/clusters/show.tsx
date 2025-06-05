@@ -10,6 +10,7 @@ import { useMetadataColumns } from "@/components/theme/table/columns/metadata-co
 import { useEndpointColumns } from "@/components/theme/table/columns/endpoint-columns";
 import ClusterStatus from "@/components/business/ClusterStatus";
 import ClusterType from "@/components/business/ClusterType";
+import { useTranslation as useI18nTranslation } from "@/lib/i18n";
 
 export const ClustersShow = () => {
   const {
@@ -18,6 +19,7 @@ export const ClustersShow = () => {
   const record = data?.data;
 
   const { translate } = useTranslation();
+  const { t } = useI18nTranslation();
 
   const metadataColumns = useMetadataColumns({ resource: "endpoints" });
   const endpointColumns = useEndpointColumns();
@@ -36,8 +38,10 @@ export const ClustersShow = () => {
     <ShowPage record={record}>
       <Tabs defaultValue="basic" className="h-full">
         <TabsList>
-          <TabsTrigger value="basic">Basic</TabsTrigger>
-          <TabsTrigger value="ray">Ray Dashboard</TabsTrigger>
+          <TabsTrigger value="basic">{t("clusters.tabs.basic")}</TabsTrigger>
+          <TabsTrigger value="ray">
+            {t("clusters.tabs.rayDashboard")}
+          </TabsTrigger>
         </TabsList>
         <TabsContent
           value="basic"
@@ -46,14 +50,14 @@ export const ClustersShow = () => {
           <MetadataCard metadata={record.metadata} />
           <Card className="mt-4">
             <CardContent>
-              <ShowPage.Row title="Status">
+              <ShowPage.Row title={t("clusters.fields.status")}>
                 <ClusterStatus phase={record.status?.phase} />
               </ShowPage.Row>
               <div className="grid grid-cols-4 gap-8">
-                <ShowPage.Row title="Type">
+                <ShowPage.Row title={t("clusters.fields.type")}>
                   <ClusterType type={record.spec.type} />
                 </ShowPage.Row>
-                <ShowPage.Row title="Image Registry">
+                <ShowPage.Row title={t("clusters.fields.imageRegistry")}>
                   <ShowButton
                     recordItemId={record.spec.image_registry}
                     meta={{
@@ -68,10 +72,10 @@ export const ClustersShow = () => {
               </div>
               {"provider" in record.spec.config && (
                 <div>
-                  <ShowPage.Row title="Head IP">
+                  <ShowPage.Row title={t("clusters.fields.headIp")}>
                     {record.spec.config.provider.head_ip ?? ""}
                   </ShowPage.Row>
-                  <ShowPage.Row title="Worker IPs">
+                  <ShowPage.Row title={t("clusters.fields.workerIps")}>
                     {(record.spec.config.provider.worker_ips || [])?.join(",")}
                   </ShowPage.Row>
                 </div>
@@ -79,32 +83,34 @@ export const ClustersShow = () => {
               {"kubeconfig" in record.spec.config && (
                 <div>
                   <div className="grid grid-cols-4 gap-8">
-                    <ShowPage.Row title="Access Mode">
+                    <ShowPage.Row title={t("clusters.fields.accessMode")}>
                       {record.spec.config.head_node_spec?.access_mode ?? ""}
                     </ShowPage.Row>
 
-                    <ShowPage.Row title="Head Node CPU">
+                    <ShowPage.Row title={t("clusters.fields.headNodeCpu")}>
                       {record.spec.config.head_node_spec?.resources?.cpu ?? ""}
                     </ShowPage.Row>
 
-                    <ShowPage.Row title="Head Node Memory">
+                    <ShowPage.Row title={t("clusters.fields.headNodeMemory")}>
                       {record.spec.config.head_node_spec?.resources?.memory ??
                         ""}
                     </ShowPage.Row>
                   </div>
 
                   <div className="grid grid-cols-4 gap-8">
-                    <ShowPage.Row title="Worker Node Replica">
+                    <ShowPage.Row
+                      title={t("clusters.fields.workerNodeReplica")}
+                    >
                       {record.spec.config.worker_group_specs?.[0]
                         ?.max_replicas ?? ""}
                     </ShowPage.Row>
 
-                    <ShowPage.Row title="Worker Node CPU">
+                    <ShowPage.Row title={t("clusters.fields.workerNodeCpu")}>
                       {record.spec.config.worker_group_specs?.[0].resources
                         ?.cpu ?? ""}
                     </ShowPage.Row>
 
-                    <ShowPage.Row title="Worker Node Memory">
+                    <ShowPage.Row title={t("clusters.fields.workerNodeMemory")}>
                       {record.spec.config.worker_group_specs?.[0].resources
                         ?.memory ?? ""}
                     </ShowPage.Row>

@@ -95,6 +95,9 @@
 		"clone": "Clone",
 		"notAccessTitle": "You don't have permission to access"
 	},
+	"ui": {
+		"language": "Language"
+	},
 	"warnWhenUnsavedChanges": "Are you sure you want to leave? You have unsaved changes.",
 	"notifications": {
 		"success": "Successful",
@@ -147,7 +150,26 @@
 		"title": "Workspaces"
 	},
 	"clusters": {
-		"title": "Clusters"
+		"title": "Clusters",
+		"create": "Create Cluster",
+		"edit": "Edit Cluster",
+		"tabs": {
+			"basic": "Basic",
+			"rayDashboard": "Ray Dashboard"
+		},
+		"fields": {
+			"status": "Status",
+			"type": "Type",
+			"imageRegistry": "Image Registry",
+			"headIp": "Head IP",
+			"workerIps": "Worker IPs",
+			"accessMode": "Access Mode",
+			"headNodeCpu": "Head Node CPU",
+			"headNodeMemory": "Head Node Memory",
+			"workerNodeReplica": "Worker Node Replica",
+			"workerNodeCpu": "Worker Node CPU",
+			"workerNodeMemory": "Worker Node Memory"
+		}
 	},
 	"model_registries": {
 		"title": "Model Registries"
@@ -165,7 +187,13 @@
 		"title": "Endpoints"
 	},
 	"user_profiles": {
-		"title": "Users"
+		"title": "Users",
+		"create": "Create User",
+		"edit": "Edit User",
+		"sections": {
+			"globalRoles": "Global Roles",
+			"joinedWorkspaces": "Joined Workspaces"
+		}
 	},
 	"roles": {
 		"title": "Roles"

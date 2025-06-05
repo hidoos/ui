@@ -13,8 +13,10 @@ import { useGetIdentity, useGetLocale, useSetLocale } from "@refinedev/core";
 import LogoutButton from "./LogoutButton";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Globe, Check } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export const UserDropdown = () => {
+  const { t } = useTranslation();
   const { data: identity } = useGetIdentity<{
     user_metadata: {
       username: string;
@@ -56,7 +58,7 @@ export const UserDropdown = () => {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Globe size={16} className="" />
-            <span>Language</span>
+            <span>{t("ui.language")}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent className="min-w-[180px]">

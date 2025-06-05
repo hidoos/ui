@@ -1,8 +1,10 @@
 import { useInvalidate, useLogout } from "@refinedev/core";
 import { Button } from "@/components/ui/button";
 import { LogOutIcon } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LogoutButton() {
+  const { t } = useTranslation();
   const { mutate: logout } = useLogout();
   const invalidate = useInvalidate();
 
@@ -19,7 +21,7 @@ export default function LogoutButton() {
         className="p-0 h-auto w-full justify-start"
       >
         <LogOutIcon size={16} className="mr-2" />
-        Logout
+        {t("buttons.logout")}
       </Button>
     </>
   );
