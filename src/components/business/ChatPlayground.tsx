@@ -15,6 +15,7 @@ import ReactMarkdown from "react-markdown";
 import "github-markdown-css/github-markdown-light.css";
 import { useCustom } from "@refinedev/core";
 import { streamText, type CoreMessage } from "ai";
+import { useTranslation } from "react-i18next";
 
 type FormValue = {
   model: string;
@@ -28,6 +29,7 @@ type ChatPlaygroundProps = {
 };
 
 export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
+  const { t } = useTranslation();
   const { ...form } = useForm({
     mode: "all",
     defaultValues: {
@@ -40,6 +42,9 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
 
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<CoreMessage[]>([]);
+  const [status, setStatus] = useState<"idle" | "streaming" | "submitted">(
+    "idle",
+  );
 
   const openai = createOpenAI({
     baseURL: `/api/v1/serve-proxy/${endpoint?.metadata?.name}/v1`,
@@ -68,6 +73,7 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
     { model, temperature, max_length, top_p },
     e,
   ) => {
+    setStatus("submitted");
     const userMsg = { role: "user" as const, content: input };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
@@ -82,6 +88,7 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
 
     const assistantIndex = messages.length + 1;
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+    setStatus("streaming");
 
     for await (const delta of stream.textStream) {
       setMessages((prev) => {
@@ -93,6 +100,11 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
         return next;
       });
     }
+    setStatus("idle");
+  };
+
+  const stop = () => {
+    setStatus("idle");
   };
 
   return (
@@ -108,7 +120,9 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
                     control={form.control}
                     render={({ field }) => (
                       <Combobox
-                        placeholder="Select a model"
+                        placeholder={t(
+                          "components.playground.chat.selectModel",
+                        )}
                         triggerClassName="sm:w-[300px]"
                         popoverClassName="w-[300px]"
                         options={(modelsData.data?.data.data || []).map(
@@ -154,13 +168,12 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
                       </div>
                     ))}
                   </ScrollArea>
-                  {/* 修改: 添加暗色模式兼容的底部输入区域 */}
                   <div className="flex flex-col space-y-2 border dark:border-gray-700 rounded-md shadow-sm p-1 sticky bottom-2 right-0 left-0 bg-white dark:bg-gray-800">
                     <Textarea
                       placeholder={
                         !form.getValues().model
-                          ? "Select a model first"
-                          : "Chat with your AI model..."
+                          ? t("components.playground.chat.selectModelFirst")
+                          : t("components.playground.chat.chatPlaceholder")
                       }
                       className="flex-1 p-4 border-0 outline-none focus:ring-0 focus-visible:ring-0 focus:outline-none resize-none shadow-none bg-transparent dark:text-gray-200 dark:placeholder:text-gray-400"
                       value={input}
@@ -178,7 +191,7 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
                     <div className="flex items-center space-x-2 justify-end">
                       {status === "streaming" ? (
                         <Button variant="secondary" onClick={stop}>
-                          Stop
+                          {t("components.playground.chat.stop")}
                         </Button>
                       ) : (
                         <Button
@@ -189,7 +202,7 @@ export default function ChatPlayground({ endpoint }: ChatPlaygroundProps) {
                             !form.getValues().model
                           }
                         >
-                          Send
+                          {t("components.playground.chat.send")}
                         </Button>
                       )}
                     </div>

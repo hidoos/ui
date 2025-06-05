@@ -212,5 +212,81 @@
 	},
 	"developer": {
 		"title": "Developer"
+	},
+	"components": {
+		"yamlImport": {
+			"importYaml": "Import YAML",
+			"title": "Import Resources from YAML",
+			"description": "Import multiple resources from a YAML file. Supports Kubernetes-style resource definitions.",
+			"uploadYamlFile": "Upload YAML File",
+			"or": "Or",
+			"pasteYamlContent": "Paste YAML Content",
+			"pasteYamlPlaceholder": "Paste your YAML content here...",
+			"importingResources": "Importing resources...",
+			"importing": "Importing...",
+			"importResources": "Import Resources",
+			"importResults": "Import Results",
+			"success": "Success",
+			"error": "Error",
+			"errorLabel": "Error",
+			"successfullyCreated": "Successfully created",
+			"importMore": "Import More",
+			"close": "Close"
+		},
+		"variablesInput": {
+			"key": "Key",
+			"value": "Value",
+			"selectValue": "Select value",
+			"true": "True",
+			"false": "False",
+			"newValue": "New value",
+			"selectFromSchema": "Select from schema",
+			"orTypeCustomKey": "Or type custom key",
+			"newKey": "New key"
+		},
+		"playground": {
+			"chat": {
+				"selectModel": "Select a model",
+				"selectModelFirst": "Select a model first",
+				"chatPlaceholder": "Chat with your AI model...",
+				"stop": "Stop",
+				"send": "Send"
+			},
+			"embedding": {
+				"title": "Embedding",
+				"generate": "Generate",
+				"clear": "Clear",
+				"selectModel": "Select a model",
+				"selectModelFirst": "Please select a model first",
+				"batchInputMode": "Batch Input Mode",
+				"documents": "Documents",
+				"addText": "Add Text",
+				"enterText": "Enter text...",
+				"chart": "Chart",
+				"json": "JSON",
+				"noEmbeddingData": "No embedding data to display"
+			},
+			"rerank": {
+				"title": "Reranking",
+				"processing": "Processing...",
+				"rerank": "Rerank",
+				"clear": "Clear",
+				"model": "Model",
+				"query": "Query",
+				"selectModel": "Select a reranker model",
+				"selectModelAndQuery": "Please select a model and enter a query",
+				"addOneDocument": "Please add at least one document",
+				"enterSearchQuery": "Enter your search query...",
+				"documents": "Documents",
+				"results": "Results",
+				"json": "JSON",
+				"addDocument": "Add Document",
+				"enterDocumentText": "Enter document text...",
+				"noResults": "No results yet. Add documents and click \"Rerank\" to see results.",
+				"failedRerank": "Failed to rerank documents. Please check the console for details.",
+				"score": "Score",
+				"was": "was"
+			}
+		}
 	}
 }

@@ -15,15 +15,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useYamlImport } from "@/hooks/useYamlImport";
-import {
-  Upload,
-  FileText,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { useYamlImport } from "@/hooks/use-yaml-import";
+import { Upload, FileText, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface YamlImportDialogProps {
   trigger?: React.ReactNode;
@@ -34,6 +29,7 @@ export const YamlImportDialog = ({
   trigger,
   className,
 }: YamlImportDialogProps) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [yamlContent, setYamlContent] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -91,16 +87,15 @@ export const YamlImportDialog = ({
         {trigger || (
           <Button variant="outline" className={className}>
             <Upload className="mr-2 h-4 w-4" />
-            Import YAML
+            {t("components.yamlImport.importYaml")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Import Resources from YAML</DialogTitle>
+          <DialogTitle>{t("components.yamlImport.title")}</DialogTitle>
           <DialogDescription>
-            Import multiple resources from a YAML file. Supports
-            Kubernetes-style resource definitions.
+            {t("components.yamlImport.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +105,7 @@ export const YamlImportDialog = ({
               {/* File Upload Section */}
               <div className="space-y-3">
                 <Label htmlFor="file-upload" className="text-base font-medium">
-                  Upload YAML File
+                  {t("components.yamlImport.uploadYamlFile")}
                 </Label>
                 <div className="flex items-center gap-3">
                   <Input
@@ -130,7 +125,7 @@ export const YamlImportDialog = ({
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or
+                    {t("components.yamlImport.or")}
                   </span>
                 </div>
               </div>
@@ -138,11 +133,11 @@ export const YamlImportDialog = ({
               {/* Text Input Section */}
               <div className="space-y-3">
                 <Label htmlFor="yaml-text" className="text-base font-medium">
-                  Paste YAML Content
+                  {t("components.yamlImport.pasteYamlContent")}
                 </Label>
                 <Textarea
                   id="yaml-text"
-                  placeholder={"Paste your YAML content here..."}
+                  placeholder={t("components.yamlImport.pasteYamlPlaceholder")}
                   value={yamlContent}
                   onChange={(e) => setYamlContent(e.target.value)}
                   className="min-h-[300px] font-mono text-sm"
@@ -154,7 +149,7 @@ export const YamlImportDialog = ({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">
-                      Importing resources...
+                      {t("components.yamlImport.importingResources")}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {progress.completed} / {progress.total}
@@ -171,7 +166,9 @@ export const YamlImportDialog = ({
                   disabled={!yamlContent.trim() || isImporting}
                   size="lg"
                 >
-                  {isImporting ? "Importing..." : "Import Resources"}
+                  {isImporting
+                    ? t("components.yamlImport.importing")
+                    : t("components.yamlImport.importResources")}
                 </Button>
               </div>
             </div>
@@ -179,14 +176,16 @@ export const YamlImportDialog = ({
             /* Results Section */
             <div className="space-y-4 h-full flex flex-col">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Import Results</h3>
+                <h3 className="text-lg font-semibold">
+                  {t("components.yamlImport.importResults")}
+                </h3>
                 <div className="flex gap-2">
                   <Badge
                     variant="secondary"
                     className="bg-green-100 text-green-800"
                   >
                     <CheckCircle className="mr-1 h-3 w-3" />
-                    {successCount} Success
+                    {successCount} {t("components.yamlImport.success")}
                   </Badge>
                   {errorCount > 0 && (
                     <Badge
@@ -194,7 +193,7 @@ export const YamlImportDialog = ({
                       className="bg-red-100 text-red-800"
                     >
                       <XCircle className="mr-1 h-3 w-3" />
-                      {errorCount} Error
+                      {errorCount} {t("components.yamlImport.error")}
                     </Badge>
                   )}
                 </div>
@@ -229,12 +228,15 @@ export const YamlImportDialog = ({
                           </div>
                           {!result.success && result.error && (
                             <div className="text-sm text-red-700 mt-1">
-                              <strong>Error:</strong> {result.error}
+                              <strong>
+                                {t("components.yamlImport.errorLabel")}:
+                              </strong>{" "}
+                              {result.error}
                             </div>
                           )}
                           {result.success && (
                             <div className="text-sm text-green-700">
-                              Successfully created
+                              {t("components.yamlImport.successfullyCreated")}
                             </div>
                           )}
                         </div>
@@ -246,9 +248,11 @@ export const YamlImportDialog = ({
 
               <div className="flex justify-between">
                 <Button variant="outline" onClick={resetDialog}>
-                  Import More
+                  {t("components.yamlImport.importMore")}
                 </Button>
-                <Button onClick={() => setIsOpen(false)}>Close</Button>
+                <Button onClick={() => setIsOpen(false)}>
+                  {t("components.yamlImport.close")}
+                </Button>
               </div>
             </div>
           )}

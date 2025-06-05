@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Define schema types
 type SchemaPropertyType = "string" | "number" | "boolean" | "integer" | "float";
@@ -54,6 +55,7 @@ export const VariablesInput = React.forwardRef<
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const [newKey, setNewKey] = useState<string>("");
     const [newValue, setNewValue] = useState<string>("");
 
@@ -175,11 +177,17 @@ export const VariablesInput = React.forwardRef<
                 onValueChange={(value) => setNewValue(value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select value" />
+                  <SelectValue
+                    placeholder={t("components.variablesInput.selectValue")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="true">True</SelectItem>
-                  <SelectItem value="false">False</SelectItem>
+                  <SelectItem value="true">
+                    {t("components.variablesInput.true")}
+                  </SelectItem>
+                  <SelectItem value="false">
+                    {t("components.variablesInput.false")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             );
@@ -188,7 +196,7 @@ export const VariablesInput = React.forwardRef<
             return (
               <Input
                 type="number"
-                placeholder="New value"
+                placeholder={t("components.variablesInput.newValue")}
                 value={newValue}
                 step="any"
                 onChange={(e) => setNewValue(e.target.value)}
@@ -199,7 +207,7 @@ export const VariablesInput = React.forwardRef<
             return (
               <Input
                 type="number"
-                placeholder="New value"
+                placeholder={t("components.variablesInput.newValue")}
                 value={newValue}
                 step="1"
                 onChange={(e) => setNewValue(e.target.value)}
@@ -212,7 +220,7 @@ export const VariablesInput = React.forwardRef<
       // Default string input
       return (
         <Input
-          placeholder="New value"
+          placeholder={t("components.variablesInput.newValue")}
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
           className="w-full"
@@ -226,8 +234,8 @@ export const VariablesInput = React.forwardRef<
           <Table ref={ref}>
             <TableHeader>
               <TableRow>
-                <TableHead>Key</TableHead>
-                <TableHead>Value</TableHead>
+                <TableHead>{t("components.variablesInput.key")}</TableHead>
+                <TableHead>{t("components.variablesInput.value")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -266,7 +274,11 @@ export const VariablesInput = React.forwardRef<
                         onValueChange={setNewKey}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select from schema" />
+                          <SelectValue
+                            placeholder={t(
+                              "components.variablesInput.selectFromSchema",
+                            )}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {availableSchemaKeys.map((key) => (
@@ -277,7 +289,9 @@ export const VariablesInput = React.forwardRef<
                         </SelectContent>
                       </Select>
                       <Input
-                        placeholder="Or type custom key"
+                        placeholder={t(
+                          "components.variablesInput.orTypeCustomKey",
+                        )}
                         value={
                           availableSchemaKeys.includes(newKey) ? "" : newKey
                         }
@@ -287,7 +301,7 @@ export const VariablesInput = React.forwardRef<
                     </div>
                   ) : (
                     <Input
-                      placeholder="New key"
+                      placeholder={t("components.variablesInput.newKey")}
                       value={newKey}
                       onChange={(e) => setNewKey(e.target.value)}
                       className="w-full"

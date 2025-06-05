@@ -11,6 +11,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { useCustom } from "@refinedev/core";
 import type { Endpoint } from "@/types";
+import { useTranslation } from "react-i18next";
 
 const getRankChangeDisplay = (change: number) => {
   if (change > 0) {
@@ -62,6 +63,7 @@ type RerankPlaygroundProps = {
 };
 
 export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
+  const { t } = useTranslation();
   const [documents, setDocuments] = useState<Document[]>([
     {
       id: 1,
@@ -149,13 +151,13 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
   // Function to rerank documents
   const rerankDocuments = async (values: FormValue) => {
     if (!values.model || !values.query) {
-      alert("Please select a model and enter a query");
+      alert(t("components.playground.rerank.selectModelAndQuery"));
       return;
     }
 
     const validDocuments = documents.filter((doc) => doc.text.trim() !== "");
     if (validDocuments.length === 0) {
-      alert("Please add at least one document");
+      alert(t("components.playground.rerank.addOneDocument"));
       return;
     }
 
@@ -216,9 +218,7 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
       setActiveTab("results");
     } catch (error) {
       console.error("Error reranking documents:", error);
-      alert(
-        "Failed to rerank documents. Please check the console for details.",
-      );
+      alert(t("components.playground.rerank.failedRerank"));
     } finally {
       setIsProcessing(false);
     }
@@ -237,7 +237,9 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
         <div className="h-full flex-col">
           <div className="container h-full py-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Reranking</h2>
+              <h2 className="text-2xl font-bold">
+                {t("components.playground.rerank.title")}
+              </h2>
               <div className="flex items-center space-x-2">
                 <Button
                   type="button"
@@ -245,10 +247,12 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                   disabled={isProcessing}
                   onClick={() => form.handleSubmit(rerankDocuments)()}
                 >
-                  {isProcessing ? "Processing..." : "Rerank"}
+                  {isProcessing
+                    ? t("components.playground.rerank.processing")
+                    : t("components.playground.rerank.rerank")}
                 </Button>
                 <Button type="button" variant="outline" onClick={clearAll}>
-                  Clear
+                  {t("components.playground.rerank.clear")}
                 </Button>
               </div>
             </div>
@@ -257,13 +261,17 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
               <div className="flex-col space-y-4 sm:flex md:order-2">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="model">Model</Label>
+                    <Label htmlFor="model">
+                      {t("components.playground.rerank.model")}
+                    </Label>
                     <Controller
                       name="model"
                       control={form.control}
                       render={({ field }) => (
                         <Combobox
-                          placeholder="Select a reranker model"
+                          placeholder={t(
+                            "components.playground.rerank.selectModel",
+                          )}
                           triggerClassName="sm:w-[300px]"
                           popoverClassName="w-[300px]"
                           options={models}
@@ -274,14 +282,18 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="query">Query</Label>
+                    <Label htmlFor="query">
+                      {t("components.playground.rerank.query")}
+                    </Label>
                     <Controller
                       name="query"
                       control={form.control}
                       render={({ field }) => (
                         <Textarea
                           {...field}
-                          placeholder="Enter your search query..."
+                          placeholder={t(
+                            "components.playground.rerank.enterSearchQuery",
+                          )}
                           className="min-h-24"
                         />
                       )}
@@ -297,9 +309,15 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                   className="w-full"
                 >
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="documents">Documents</TabsTrigger>
-                    <TabsTrigger value="results">Results</TabsTrigger>
-                    <TabsTrigger value="json">JSON</TabsTrigger>
+                    <TabsTrigger value="documents">
+                      {t("components.playground.rerank.documents")}
+                    </TabsTrigger>
+                    <TabsTrigger value="results">
+                      {t("components.playground.rerank.results")}
+                    </TabsTrigger>
+                    <TabsTrigger value="json">
+                      {t("components.playground.rerank.json")}
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="results" className="mt-4">
@@ -328,12 +346,14 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                                         <span>{changeDisplay.text}</span>
                                       </span>
                                       <span className="text-xs text-muted-foreground">
-                                        (was #{doc.originalIndex + 1})
+                                        ({t("components.playground.rerank.was")}{" "}
+                                        #{doc.originalIndex + 1})
                                       </span>
                                     </div>
                                   </div>
                                   <Badge variant="secondary">
-                                    Score: {doc.score.toFixed(4)}
+                                    {t("components.playground.rerank.score")}:{" "}
+                                    {doc.score.toFixed(4)}
                                   </Badge>
                                 </div>
                                 <p className="text-sm">{doc.text}</p>
@@ -342,8 +362,7 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                           })
                         ) : (
                           <div className="flex items-center justify-center h-full text-muted-foreground py-20">
-                            No results yet. Add documents and click "Rerank" to
-                            see results.
+                            {t("components.playground.rerank.noResults")}
                           </div>
                         )}
                       </div>
@@ -366,7 +385,9 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                               onChange={(e) =>
                                 updateDocument(doc.id, e.target.value)
                               }
-                              placeholder="Enter document text..."
+                              placeholder={t(
+                                "components.playground.rerank.enterDocumentText",
+                              )}
                               className="flex-1 min-h-20"
                             />
                             <Button
@@ -386,7 +407,8 @@ export default function RerankPlayground({ endpoint }: RerankPlaygroundProps) {
                           className="w-full"
                           onClick={addDocument}
                         >
-                          <Plus className="h-4 w-4 mr-2" /> Add Document
+                          <Plus className="h-4 w-4 mr-2" />{" "}
+                          {t("components.playground.rerank.addDocument")}
                         </Button>
                       </div>
                     </ScrollArea>

@@ -212,5 +212,81 @@
 	},
 	"developer": {
 		"title": "开发者"
+	},
+	"components": {
+		"yamlImport": {
+			"importYaml": "导入 YAML",
+			"title": "从 YAML 导入资源",
+			"description": "从 YAML 文件导入多个资源。支持 Kubernetes 风格的资源定义。",
+			"uploadYamlFile": "上传 YAML 文件",
+			"or": "或",
+			"pasteYamlContent": "粘贴 YAML 内容",
+			"pasteYamlPlaceholder": "在此粘贴您的 YAML 内容...",
+			"importingResources": "正在导入资源...",
+			"importing": "导入中...",
+			"importResources": "导入资源",
+			"importResults": "导入结果",
+			"success": "成功",
+			"error": "错误",
+			"errorLabel": "错误",
+			"successfullyCreated": "成功创建",
+			"importMore": "导入更多",
+			"close": "关闭"
+		},
+		"variablesInput": {
+			"key": "键",
+			"value": "值",
+			"selectValue": "选择值",
+			"true": "真",
+			"false": "假",
+			"newValue": "新值",
+			"selectFromSchema": "从架构中选择",
+			"orTypeCustomKey": "或输入自定义键",
+			"newKey": "新键"
+		},
+		"playground": {
+			"chat": {
+				"selectModel": "选择模型",
+				"selectModelFirst": "请先选择模型",
+				"chatPlaceholder": "与您的AI模型对话...",
+				"stop": "停止",
+				"send": "发送"
+			},
+			"embedding": {
+				"title": "嵌入向量",
+				"generate": "生成",
+				"clear": "清除",
+				"selectModel": "选择模型",
+				"selectModelFirst": "请先选择模型",
+				"batchInputMode": "批量输入模式",
+				"documents": "文档",
+				"addText": "添加文本",
+				"enterText": "输入文本...",
+				"chart": "图表",
+				"json": "JSON",
+				"noEmbeddingData": "无嵌入向量数据可显示"
+			},
+			"rerank": {
+				"title": "重排序",
+				"processing": "处理中...",
+				"rerank": "重排序",
+				"clear": "清除",
+				"model": "模型",
+				"query": "查询",
+				"selectModel": "选择重排序模型",
+				"selectModelAndQuery": "请选择模型并输入查询",
+				"addOneDocument": "请至少添加一个文档",
+				"enterSearchQuery": "输入您的搜索查询...",
+				"documents": "文档",
+				"results": "结果",
+				"json": "JSON",
+				"addDocument": "添加文档",
+				"enterDocumentText": "输入文档文本...",
+				"noResults": "暂无结果。添加文档并点击\"重排序\"查看结果。",
+				"failedRerank": "重排序文档失败。请查看控制台了解详情。",
+				"score": "分数",
+				"was": "原"
+			}
+		}
 	}
 }

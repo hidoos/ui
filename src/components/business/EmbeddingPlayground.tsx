@@ -23,6 +23,7 @@ import type { Endpoint } from "@/types";
 import { PCA } from "ml-pca";
 import { embed } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { useTranslation } from "react-i18next";
 
 // Custom tooltip to show the text content when hovering on a point
 const CustomTooltip = ({ active, payload }: any) => {
@@ -67,6 +68,7 @@ type EmbeddingPlaygroundProps = {
 export default function EmbeddingPlayground({
   endpoint,
 }: EmbeddingPlaygroundProps) {
+  const { t } = useTranslation();
   const [documents, setDocuments] = useState([
     {
       id: 1,
@@ -156,7 +158,7 @@ export default function EmbeddingPlayground({
   // Function to generate embeddings
   const generateEmbeddings = async () => {
     if (!form.getValues().model) {
-      alert("Please select a model first");
+      alert(t("components.playground.embedding.selectModelFirst"));
       return;
     }
 
@@ -210,7 +212,9 @@ export default function EmbeddingPlayground({
         <div className="h-full flex-col">
           <div className="container h-full py-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Embedding</h2>
+              <h2 className="text-2xl font-bold">
+                {t("components.playground.embedding.title")}
+              </h2>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -218,10 +222,10 @@ export default function EmbeddingPlayground({
                   disabled={isProcessing}
                   onClick={() => generateEmbeddings()}
                 >
-                  Generate
+                  {t("components.playground.embedding.generate")}
                 </Button>
                 <Button variant="outline" onClick={clearAll}>
-                  Clear
+                  {t("components.playground.embedding.clear")}
                 </Button>
               </div>
             </div>
@@ -240,7 +244,9 @@ export default function EmbeddingPlayground({
                           }
                         }}
                       />
-                      <Label htmlFor="batchMode">Batch Input Mode</Label>
+                      <Label htmlFor="batchMode">
+                        {t("components.playground.embedding.batchInputMode")}
+                      </Label>
                     </div>
                   </div>
 
@@ -249,7 +255,9 @@ export default function EmbeddingPlayground({
                     control={form.control}
                     render={({ field }) => (
                       <Combobox
-                        placeholder="Select a model"
+                        placeholder={t(
+                          "components.playground.embedding.selectModel",
+                        )}
                         triggerClassName="sm:w-[300px]"
                         popoverClassName="w-[300px]"
                         options={models}
@@ -262,7 +270,9 @@ export default function EmbeddingPlayground({
 
               <div className="md:order-1 space-y-6">
                 <div className="space-y-2">
-                  <h3 className="font-medium">Documents</h3>
+                  <h3 className="font-medium">
+                    {t("components.playground.embedding.documents")}
+                  </h3>
                   <ScrollArea className="h-[400px] rounded-md border">
                     <div className="p-4 space-y-4">
                       {documents.map((doc, index) => (
@@ -278,7 +288,9 @@ export default function EmbeddingPlayground({
                             onChange={(e) =>
                               updateDocument(doc.id, e.target.value)
                             }
-                            placeholder="Enter text..."
+                            placeholder={t(
+                              "components.playground.embedding.enterText",
+                            )}
                             className="flex-1 min-h-12"
                           />
                           <Button
@@ -298,7 +310,8 @@ export default function EmbeddingPlayground({
                         className="w-full"
                         onClick={addDocument}
                       >
-                        <PlusIcon className="h-4 w-4 mr-2" /> Add Text
+                        <PlusIcon className="h-4 w-4 mr-2" />{" "}
+                        {t("components.playground.embedding.addText")}
                       </Button>
                     </div>
                   </ScrollArea>
@@ -311,8 +324,12 @@ export default function EmbeddingPlayground({
                     className="w-full"
                   >
                     <TabsList className="grid w-40 grid-cols-2">
-                      <TabsTrigger value="chart">Chart</TabsTrigger>
-                      <TabsTrigger value="json">JSON</TabsTrigger>
+                      <TabsTrigger value="chart">
+                        {t("components.playground.embedding.chart")}
+                      </TabsTrigger>
+                      <TabsTrigger value="json">
+                        {t("components.playground.embedding.json")}
+                      </TabsTrigger>
                     </TabsList>
                     <TabsContent value="chart" className="m-0 w-full">
                       <div className="h-[300px] p-2 w-full">
@@ -356,7 +373,9 @@ export default function EmbeddingPlayground({
                           </ResponsiveContainer>
                         ) : (
                           <div className="flex items-center justify-center h-full text-muted-foreground">
-                            No embedding data to display
+                            {t(
+                              "components.playground.embedding.noEmbeddingData",
+                            )}
                           </div>
                         )}
                       </div>
