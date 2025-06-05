@@ -5,8 +5,10 @@ import Loader from "@/components/theme/components/loader";
 import { Card, CardContent } from "@/components/ui/card";
 import type { RoleAssignment } from "@/types";
 import { useShow } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const RoleAssignmentsShow = () => {
+  const { t } = useTranslation();
   const {
     query: { data, isLoading },
   } = useShow<RoleAssignment>();
@@ -17,7 +19,7 @@ export const RoleAssignmentsShow = () => {
   }
 
   if (!record) {
-    return <div>404 not found</div>;
+    return <div>{t("pages.error.notFound")}</div>;
   }
 
   return (
@@ -26,7 +28,7 @@ export const RoleAssignmentsShow = () => {
       <Card className="mt-4">
         <CardContent>
           <div className="grid grid-cols-4 gap-8">
-            <ShowPage.Row title="Workspace">
+            <ShowPage.Row title={t("role_assignments.fields.workspace")}>
               {record.spec.global ? (
                 "*"
               ) : record.spec.workspace ? (
@@ -40,7 +42,7 @@ export const RoleAssignmentsShow = () => {
                 </ShowButton>
               ) : null}
             </ShowPage.Row>
-            <ShowPage.Row title="Role">
+            <ShowPage.Row title={t("role_assignments.fields.role")}>
               <ShowButton
                 recordItemId={record.spec.role}
                 meta={{}}
@@ -50,7 +52,7 @@ export const RoleAssignmentsShow = () => {
                 {record.spec.role}
               </ShowButton>
             </ShowPage.Row>
-            <ShowPage.Row title="User">
+            <ShowPage.Row title={t("role_assignments.fields.user")}>
               <UserCell id={record.spec.user_id} />
             </ShowPage.Row>
           </div>

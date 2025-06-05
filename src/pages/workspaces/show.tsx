@@ -22,7 +22,7 @@ export const WorkspacesShow = () => {
   }
 
   if (!record) {
-    return <div>404 not found</div>;
+    return <div>{translate("pages.error.notFound")}</div>;
   }
 
   const { metadata } = record;

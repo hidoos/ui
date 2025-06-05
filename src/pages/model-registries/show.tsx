@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ModelRegistry } from "@/types";
 import { useShow } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const ModelRegistriesShow = () => {
+  const { t } = useTranslation();
   const {
     query: { data, isLoading },
   } = useShow<ModelRegistry>();
@@ -19,7 +21,7 @@ export const ModelRegistriesShow = () => {
   }
 
   if (!record) {
-    return <div>404 not found</div>;
+    return <div>{t("pages.error.notFound")}</div>;
   }
 
   return (
@@ -27,14 +29,14 @@ export const ModelRegistriesShow = () => {
       <MetadataCard metadata={record.metadata} />
       <Card className="mt-4">
         <CardContent>
-          <ShowPage.Row title={"Status"}>
+          <ShowPage.Row title={t("model_registries.fields.status")}>
             <ModelRegistryStatus phase={record.status?.phase} />
           </ShowPage.Row>
           <div className="grid grid-cols-4 gap-8">
-            <ShowPage.Row title={"Type"}>
+            <ShowPage.Row title={t("model_registries.fields.type")}>
               <ModelRegistryType type={record.spec.type} />
             </ShowPage.Row>
-            <ShowPage.Row title={"URL"}>
+            <ShowPage.Row title={t("model_registries.fields.url")}>
               <a href={record.spec.url} target="_blank" rel="noreferrer">
                 <Button variant="link" className="p-0">
                   {record.spec.url}

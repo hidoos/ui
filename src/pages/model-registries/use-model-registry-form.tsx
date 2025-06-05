@@ -5,12 +5,14 @@ import type { ModelRegistry } from "@/types";
 import FormCardGrid from "@/components/business/FormCardGrid";
 import { Input } from "@/components/ui/input";
 import WorkspaceField from "@/components/business/WorkspaceField";
+import { useTranslation } from "@/lib/i18n";
 
 export const useModelRegistryForm = ({
   action,
 }: {
   action: "create" | "edit";
 }) => {
+  const { t } = useTranslation();
   const { current: currentWorkspace } = useWorkspace();
   const form = useForm<ModelRegistry>({
     mode: "all",
@@ -42,43 +44,71 @@ export const useModelRegistryForm = ({
   return {
     form,
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="Model Registry Name" disabled={isEdit} />
+      <FormCardGrid title={t("model_registries.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={t("model_registries.fields.name")}
+        >
+          <Input
+            placeholder={t("model_registries.placeholders.registryName")}
+            disabled={isEdit}
+          />
         </Field>
-        <Field {...form} name="metadata.workspace" label="Workspace">
+        <Field
+          {...form}
+          name="metadata.workspace"
+          label={t("model_registries.fields.workspace")}
+        >
           <WorkspaceField disabled={isEdit} />
         </Field>
       </FormCardGrid>
     ),
     specFields: (
-      <FormCardGrid title="Model Registry">
-        <Field {...form} name="spec.type" label="Type">
+      <FormCardGrid title={t("model_registries.fields.modelRegistry")}>
+        <Field
+          {...form}
+          name="spec.type"
+          label={t("model_registries.fields.type")}
+        >
           <Select
-            placeholder="Select Model Registry Type"
+            placeholder={t("model_registries.placeholders.selectType")}
             options={[
-              { label: "Hugging Face", value: "hugging-face" },
-              { label: "File System", value: "bentoml" },
+              {
+                label: t("model_registries.types.huggingFace"),
+                value: "hugging-face",
+              },
+              {
+                label: t("model_registries.types.fileSystem"),
+                value: "bentoml",
+              },
             ]}
           />
         </Field>
-        <Field {...form} name="spec.url" label="URL">
+        <Field
+          {...form}
+          name="spec.url"
+          label={t("model_registries.fields.url")}
+        >
           <Input
             placeholder={
               currentType === "hugging-face"
-                ? "e.g https://huggingface.co"
-                : "e.g file://path/to/registry"
+                ? t("model_registries.placeholders.huggingFaceUrl")
+                : t("model_registries.placeholders.fileSystemUrl")
             }
           />
         </Field>
         <Field
           {...form}
           name="spec.credentials"
-          label="Credentials"
-          description="Credentials for the model registry. For hugging face, it should be a HF token."
+          label={t("model_registries.fields.credentials")}
+          description={t("model_registries.descriptions.credentials")}
           className="col-span-4"
         >
-          <Input placeholder="Credentials" type="password" />
+          <Input
+            placeholder={t("model_registries.placeholders.credentials")}
+            type="password"
+          />
         </Field>
       </FormCardGrid>
     ),

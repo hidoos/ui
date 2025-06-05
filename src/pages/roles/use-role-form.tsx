@@ -1,4 +1,5 @@
 import { useForm } from "@refinedev/react-hook-form";
+import { useTranslation } from "@refinedev/core";
 import { Field } from "@/components/theme";
 import type { Role } from "@/types";
 import FormCardGrid from "@/components/business/FormCardGrid";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import PermissionsTreeField from "@/components/business/PermissionsTreeField";
 
 export const useRoleForm = ({ action }: { action: "create" | "edit" }) => {
+  const { translate } = useTranslation();
   const form = useForm<Role>({
     mode: "all",
     defaultValues: {
@@ -32,14 +34,21 @@ export const useRoleForm = ({ action }: { action: "create" | "edit" }) => {
   return {
     form,
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="Role Name" disabled={isEdit} />
+      <FormCardGrid title={translate("roles.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={translate("roles.fields.name")}
+        >
+          <Input
+            placeholder={translate("roles.placeholders.roleName")}
+            disabled={isEdit}
+          />
         </Field>
       </FormCardGrid>
     ),
     specFields: (
-      <FormCardGrid title="Permissions">
+      <FormCardGrid title={translate("roles.fields.permissions")}>
         <Field {...form} name="spec.permissions" className="col-span-4">
           <PermissionsTreeField />
         </Field>

@@ -1,4 +1,5 @@
 import { useForm } from "@refinedev/react-hook-form";
+import { useTranslation } from "@refinedev/core";
 import { Field } from "@/components/theme";
 import type { UserProfile } from "@/types";
 import FormCardGrid from "@/components/business/FormCardGrid";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
   const isEdit = action === "edit";
+  const { translate } = useTranslation();
 
   const form = useForm<UserProfile>({
     mode: "all",
@@ -38,31 +40,63 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
     form,
     registerFields: (
       <FormCardGrid>
-        <Field {...form} name="name" label="Name">
-          <Input placeholder="User Name" />
+        <Field
+          {...form}
+          name="name"
+          label={translate("user_profiles.fields.name")}
+        >
+          <Input
+            placeholder={translate("user_profiles.placeholders.userName")}
+          />
         </Field>
-        <Field {...form} name="email" label="Email">
-          <Input placeholder="User Email" type="email" />
+        <Field
+          {...form}
+          name="email"
+          label={translate("user_profiles.fields.email")}
+        >
+          <Input
+            placeholder={translate("user_profiles.placeholders.userEmail")}
+            type="email"
+          />
         </Field>
         <div className="col-span-2" />
-        <Field {...form} name="password" label="Password">
+        <Field
+          {...form}
+          name="password"
+          label={translate("user_profiles.fields.password")}
+        >
           <Input type="password" />
         </Field>
-        <Field {...form} name="confirmPassword" label="Confirm Password">
+        <Field
+          {...form}
+          name="confirmPassword"
+          label={translate("user_profiles.fields.confirmPassword")}
+        >
           <Input type="password" />
         </Field>
       </FormCardGrid>
     ),
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="User Name" disabled={isEdit} />
+      <FormCardGrid title={translate("user_profiles.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={translate("user_profiles.fields.name")}
+        >
+          <Input
+            placeholder={translate("user_profiles.placeholders.userName")}
+            disabled={isEdit}
+          />
         </Field>
       </FormCardGrid>
     ),
     specFields: (
       <FormCardGrid>
-        <Field {...form} name="spec.email" label="Email">
+        <Field
+          {...form}
+          name="spec.email"
+          label={translate("user_profiles.fields.email")}
+        >
           <Input type="email" />
         </Field>
       </FormCardGrid>

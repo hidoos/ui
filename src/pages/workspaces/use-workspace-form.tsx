@@ -1,4 +1,5 @@
 import { useForm } from "@refinedev/react-hook-form";
+import { useTranslation } from "@refinedev/core";
 import { Field } from "@/components/theme";
 import type { Workspace } from "@/types";
 import FormCardGrid from "@/components/business/FormCardGrid";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 export const useWorkspaceForm = ({ action }: { action: "create" | "edit" }) => {
   const isEdit = action === "edit";
+  const { translate } = useTranslation();
 
   const form = useForm<Workspace>({
     mode: "all",
@@ -27,9 +29,16 @@ export const useWorkspaceForm = ({ action }: { action: "create" | "edit" }) => {
   return {
     form,
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="Workspace Name" disabled={isEdit} />
+      <FormCardGrid title={translate("workspaces.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={translate("workspaces.fields.name")}
+        >
+          <Input
+            placeholder={translate("workspaces.placeholders.workspaceName")}
+            disabled={isEdit}
+          />
         </Field>
       </FormCardGrid>
     ),

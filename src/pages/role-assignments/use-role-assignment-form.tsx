@@ -5,12 +5,14 @@ import FormCardGrid from "@/components/business/FormCardGrid";
 import { Input } from "@/components/ui/input";
 import WorkspaceField from "@/components/business/WorkspaceField";
 import { useSelect } from "@refinedev/core";
+import { useTranslation } from "@/lib/i18n";
 
 export const useRoleAssignmentForm = ({
   action,
 }: {
   action: "create" | "edit";
 }) => {
+  const { t } = useTranslation();
   const form = useForm<RoleAssignment>({
     mode: "all",
     defaultValues: {
@@ -49,17 +51,28 @@ export const useRoleAssignmentForm = ({
   return {
     form,
     metadataFields: (
-      <FormCardGrid title="Basic Information">
-        <Field {...form} name="metadata.name" label="Name">
-          <Input placeholder="Workspace Policy Name" disabled={isEdit} />
+      <FormCardGrid title={t("role_assignments.fields.basicInformation")}>
+        <Field
+          {...form}
+          name="metadata.name"
+          label={t("role_assignments.fields.name")}
+        >
+          <Input
+            placeholder={t("role_assignments.placeholders.policyName")}
+            disabled={isEdit}
+          />
         </Field>
       </FormCardGrid>
     ),
     specFields: (
-      <FormCardGrid title="Policy">
-        <Field {...form} name="spec.user_id" label="User">
+      <FormCardGrid title={t("role_assignments.fields.policy")}>
+        <Field
+          {...form}
+          name="spec.user_id"
+          label={t("role_assignments.fields.user")}
+        >
           <Combobox
-            placeholder="Select A User"
+            placeholder={t("role_assignments.placeholders.selectUser")}
             disabled={users.query.isLoading}
             options={(users.query.data?.data || []).map((e) => ({
               label: e.metadata.name,
@@ -67,9 +80,13 @@ export const useRoleAssignmentForm = ({
             }))}
           />
         </Field>
-        <Field {...form} name="spec.role" label="Role">
+        <Field
+          {...form}
+          name="spec.role"
+          label={t("role_assignments.fields.role")}
+        >
           <Combobox
-            placeholder="Select A Role"
+            placeholder={t("role_assignments.placeholders.selectRole")}
             disabled={roles.query.isLoading}
             options={(roles.query.data?.data || []).map((e) => ({
               label: e.metadata.name,
@@ -81,13 +98,13 @@ export const useRoleAssignmentForm = ({
         <Field
           {...form}
           name="spec.global"
-          label="Policy Scope"
-          description="Global policies apply to all workspaces. Workspace policies only apply to the selected workspace."
+          label={t("role_assignments.fields.policyScope")}
+          description={t("role_assignments.descriptions.policyScope")}
         >
           <Select
             options={[
-              { label: "Global", value: true },
-              { label: "Workspace", value: false },
+              { label: t("role_assignments.options.global"), value: true },
+              { label: t("role_assignments.options.workspace"), value: false },
             ]}
             onChange={(_value) => {
               const value =
@@ -98,7 +115,11 @@ export const useRoleAssignmentForm = ({
           />
         </Field>
         {!global && (
-          <Field {...form} name="spec.workspace" label="Workspace">
+          <Field
+            {...form}
+            name="spec.workspace"
+            label={t("role_assignments.fields.workspace")}
+          >
             <WorkspaceField />
           </Field>
         )}

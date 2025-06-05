@@ -208,7 +208,6 @@ const resources: ResourceProps[] = [
     meta: {
       icon: <FileText />,
       idColumnName: "metadata->name",
-      label: "Workspace Policies",
       parent: "workspace_access",
     },
   },
@@ -432,7 +431,10 @@ function App({ i18nProvider }: { i18nProvider: I18nProvider }) {
                   </Authenticated>
                 }
               >
-                <Route path="*" element={<>Unknown Error</>} />
+                <Route
+                  path="*"
+                  element={<div>{t("pages.error.unknown")}</div>}
+                />
               </Route>
             </Routes>
           </BaseLayout>

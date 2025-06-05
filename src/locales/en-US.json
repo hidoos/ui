@@ -69,7 +69,9 @@
 			"info": "You may have forgotten to add the {{action}} component to {{resource}} resource.",
 			"404": "Sorry, the page you visited does not exist.",
 			"resource404": "Are you sure you have created the {{resource}} resource.",
-			"backHome": "Back Home"
+			"notFound": "404 not found",
+			"backHome": "Back Home",
+			"unknown": "Unknown Error"
 		}
 	},
 	"actions": {
@@ -147,7 +149,14 @@
 		"title": "Dashboard"
 	},
 	"workspaces": {
-		"title": "Workspaces"
+		"title": "Workspaces",
+		"fields": {
+			"name": "Name",
+			"basicInformation": "Basic Information"
+		},
+		"placeholders": {
+			"workspaceName": "Workspace Name"
+		}
 	},
 	"clusters": {
 		"title": "Clusters",
@@ -172,7 +181,31 @@
 		}
 	},
 	"model_registries": {
-		"title": "Model Registries"
+		"title": "Model Registries",
+		"fields": {
+			"basicInformation": "Basic Information",
+			"modelRegistry": "Model Registry",
+			"name": "Name",
+			"workspace": "Workspace",
+			"status": "Status",
+			"type": "Type",
+			"url": "URL",
+			"credentials": "Credentials"
+		},
+		"placeholders": {
+			"registryName": "Model Registry Name",
+			"selectType": "Select Model Registry Type",
+			"huggingFaceUrl": "e.g https://huggingface.co",
+			"fileSystemUrl": "e.g file://path/to/registry",
+			"credentials": "Credentials"
+		},
+		"descriptions": {
+			"credentials": "Credentials for the model registry. For hugging face, it should be a HF token."
+		},
+		"types": {
+			"huggingFace": "Hugging Face",
+			"fileSystem": "File System"
+		}
 	},
 	"model_catalogs": {
 		"title": "Model Catalogs"
@@ -190,16 +223,56 @@
 		"title": "Users",
 		"create": "Create User",
 		"edit": "Edit User",
+		"fields": {
+			"name": "Name",
+			"email": "Email",
+			"password": "Password",
+			"confirmPassword": "Confirm Password",
+			"basicInformation": "Basic Information"
+		},
+		"placeholders": {
+			"userName": "User Name",
+			"userEmail": "User Email"
+		},
 		"sections": {
 			"globalRoles": "Global Roles",
 			"joinedWorkspaces": "Joined Workspaces"
 		}
 	},
 	"roles": {
-		"title": "Roles"
+		"title": "Roles",
+		"fields": {
+			"name": "Name",
+			"permissions": "Permissions",
+			"basicInformation": "Basic Information"
+		},
+		"placeholders": {
+			"roleName": "Role Name"
+		}
 	},
 	"role_assignments": {
-		"title": "Workspace Policies"
+		"title": "Workspace Policies",
+		"fields": {
+			"basicInformation": "Basic Information",
+			"policy": "Policy",
+			"name": "Name",
+			"workspace": "Workspace",
+			"role": "Role",
+			"user": "User",
+			"policyScope": "Policy Scope"
+		},
+		"placeholders": {
+			"policyName": "Workspace Policy Name",
+			"selectUser": "Select A User",
+			"selectRole": "Select A Role"
+		},
+		"descriptions": {
+			"policyScope": "Global policies apply to all workspaces. Workspace policies only apply to the selected workspace."
+		},
+		"options": {
+			"global": "Global",
+			"workspace": "Workspace"
+		}
 	},
 	"api_keys": {
 		"title": "API key"
@@ -287,6 +360,41 @@
 				"score": "Score",
 				"was": "was"
 			}
+		}
+	},
+	"status": {
+		"phases": {
+			"apiKey": {
+				"Pending": "Pending",
+				"Created": "Created", 
+				"Deleted": "Deleted"
+			},
+			"cluster": {
+				"Pending": "Pending",
+				"Running": "Running",
+				"Failed": "Failed", 
+				"Deleted": "Deleted"
+			},
+			"endpoint": {
+				"Pending": "Pending",
+				"Running": "Running", 
+				"Failed": "Failed",
+				"Deleted": "Deleted"
+			},
+			"engine": {
+				"Pending": "Pending",
+				"Created": "Created",
+				"Failed": "Failed",
+				"Deleted": "Deleted"
+			},
+			"nodeProvision": {
+				"provisioning": "Provisioning",
+				"provisioned": "Provisioned"
+			}
+		},
+		"accessModes": {
+			"LoadBalancer": "Load Balancer",
+			"Ingress": "Ingress"
 		}
 	}
 }

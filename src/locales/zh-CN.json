@@ -69,7 +69,9 @@
 			"info": "您可能忘记将 {{action}} 组件添加到 {{resource}} 资源中。",
 			"404": "抱歉，您访问的页面不存在。",
 			"resource404": "您确定已经创建了 {{resource}} 资源吗？",
-			"backHome": "返回首页"
+			"notFound": "404 未找到",
+			"backHome": "返回首页",
+			"unknown": "未知错误"
 		}
 	},
 	"actions": {
@@ -147,7 +149,14 @@
 		"title": "概览"
 	},
 	"workspaces": {
-		"title": "工作空间"
+		"title": "工作空间",
+		"fields": {
+			"name": "名称",
+			"basicInformation": "基础信息"
+		},
+		"placeholders": {
+			"workspaceName": "工作空间名称"
+		}
 	},
 	"clusters": {
 		"title": "集群",
@@ -172,7 +181,31 @@
 		}
 	},
 	"model_registries": {
-		"title": "模型仓库"
+		"title": "模型仓库",
+		"fields": {
+			"basicInformation": "基本信息",
+			"modelRegistry": "模型仓库",
+			"name": "名称",
+			"workspace": "工作空间",
+			"status": "状态",
+			"type": "类型",
+			"url": "URL",
+			"credentials": "凭据"
+		},
+		"placeholders": {
+			"registryName": "模型仓库名称",
+			"selectType": "选择模型仓库类型",
+			"huggingFaceUrl": "例如 https://huggingface.co",
+			"fileSystemUrl": "例如 file://path/to/registry",
+			"credentials": "凭据"
+		},
+		"descriptions": {
+			"credentials": "模型仓库的凭据。对于 Hugging Face，应该是 HF token。"
+		},
+		"types": {
+			"huggingFace": "Hugging Face",
+			"fileSystem": "文件系统"
+		}
 	},
 	"model_catalogs": {
 		"title": "模型目录"
@@ -190,16 +223,56 @@
 		"title": "用户",
 		"create": "创建用户",
 		"edit": "编辑用户",
+		"fields": {
+			"name": "姓名",
+			"email": "邮箱",
+			"password": "密码",
+			"confirmPassword": "确认密码",
+			"basicInformation": "基础信息"
+		},
+		"placeholders": {
+			"userName": "用户姓名",
+			"userEmail": "用户邮箱"
+		},
 		"sections": {
 			"globalRoles": "全局角色",
 			"joinedWorkspaces": "已加入的工作空间"
 		}
 	},
 	"roles": {
-		"title": "角色"
+		"title": "角色",
+		"fields": {
+			"name": "名称",
+			"permissions": "权限",
+			"basicInformation": "基础信息"
+		},
+		"placeholders": {
+			"roleName": "角色名称"
+		}
 	},
 	"role_assignments": {
-		"title": "工作空间策略"
+		"title": "工作空间策略",
+		"fields": {
+			"basicInformation": "基本信息",
+			"policy": "策略",
+			"name": "名称",
+			"workspace": "工作空间",
+			"role": "角色",
+			"user": "用户",
+			"policyScope": "策略范围"
+		},
+		"placeholders": {
+			"policyName": "工作空间策略名称",
+			"selectUser": "选择用户",
+			"selectRole": "选择角色"
+		},
+		"descriptions": {
+			"policyScope": "全局策略适用于所有工作空间。工作空间策略仅适用于选定的工作空间。"
+		},
+		"options": {
+			"global": "全局",
+			"workspace": "工作空间"
+		}
 	},
 	"api_keys": {
 		"title": "API 密钥"
@@ -287,6 +360,41 @@
 				"score": "分数",
 				"was": "原"
 			}
+		}
+	},
+	"status": {
+		"phases": {
+			"apiKey": {
+				"Pending": "等待中",
+				"Created": "已创建", 
+				"Deleted": "已删除"
+			},
+			"cluster": {
+				"Pending": "等待中",
+				"Running": "运行中",
+				"Failed": "失败", 
+				"Deleted": "已删除"
+			},
+			"endpoint": {
+				"Pending": "等待中",
+				"Running": "运行中", 
+				"Failed": "失败",
+				"Deleted": "已删除"
+			},
+			"engine": {
+				"Pending": "等待中",
+				"Created": "已创建",
+				"Failed": "失败",
+				"Deleted": "已删除"
+			},
+			"nodeProvision": {
+				"provisioning": "配置中",
+				"provisioned": "已配置"
+			}
+		},
+		"accessModes": {
+			"LoadBalancer": "负载均衡器",
+			"Ingress": "入口"
 		}
 	}
 }
