@@ -1,11 +1,11 @@
 import MetadataCard from "@/components/business/MetadataCard";
 import ModelCatalogStatus from "@/components/business/ModelCatalogStatus";
 import EndpointModel from "@/components/business/EndpointModel";
+import ModelTask from "@/components/business/ModelTask";
 import JSONSchemaValueVisualizer from "@/components/business/JsonSchemaValueVisualizer";
 import { ShowPage, ShowButton } from "@/components/theme";
 import Loader from "@/components/theme/components/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { ModelCatalog, Engine } from "@/types";
 import { useShow, useOne } from "@refinedev/core";
 
@@ -76,7 +76,7 @@ export const ModelCatalogsShow = () => {
                 </ShowPage.Row>
               </div>
               <ShowPage.Row title={"Task"}>
-                <Badge variant="outline">{record.spec.model.task}</Badge>
+                <ModelTask task={record.spec.model.task} />
               </ShowPage.Row>
             </div>
             <div className="grid grid-cols-4 gap-8">

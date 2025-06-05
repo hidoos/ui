@@ -13,6 +13,7 @@ export const EndpointsList = () => {
         {metadataColumns.workspace}
         {endpointColumns.status}
         {endpointColumns.model}
+        {endpointColumns.task}
         {endpointColumns.engine}
         {endpointColumns.cluster}
         {metadataColumns.update_timestamp}

@@ -12,6 +12,7 @@ export const ModelCatalogsList = () => {
         {metadataColumns.name}
         {metadataColumns.workspace}
         {modelCatalogColumns.model}
+        {modelCatalogColumns.task}
         {modelCatalogColumns.engine}
         {modelCatalogColumns.status}
         {metadataColumns.update_timestamp}

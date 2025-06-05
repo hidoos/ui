@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EndpointStatus from "@/components/business/EndpointStatus";
 import EndpointModel from "@/components/business/EndpointModel";
 import EndpointEngine from "@/components/business/EndpointEngine";
+import ModelTask from "@/components/business/ModelTask";
 import JSONSchemaValueVisualizer from "@/components/business/JsonSchemaValueVisualizer";
 import Loader from "@/components/theme/components/loader";
 import { useCallback, useRef } from "react";
@@ -161,7 +162,7 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
                 </div>
                 <div>
                   <ShowPage.Row title={"Task"}>
-                    {record.spec.model.task}
+                    <ModelTask task={record.spec.model.task} />
                   </ShowPage.Row>
                 </div>
               </div>

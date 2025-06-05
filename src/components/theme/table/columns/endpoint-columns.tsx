@@ -1,4 +1,5 @@
 import EndpointModel from "@/components/business/EndpointModel";
+import ModelTask from "@/components/business/ModelTask";
 import { Table } from "..";
 import { ShowButton } from "../../buttons";
 import EndpointEngine from "@/components/business/EndpointEngine";
@@ -66,6 +67,18 @@ export const useEndpointColumns = () => {
               {cluster}
             </ShowButton>
           );
+        }}
+      />
+    ),
+    task: (
+      <Table.Column
+        header={"Task"}
+        accessorKey="spec.model.task"
+        id="task"
+        enableHiding
+        cell={({ row }) => {
+          const { model } = row.original.spec;
+          return <ModelTask task={model.task} />;
         }}
       />
     ),

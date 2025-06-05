@@ -1,6 +1,7 @@
 import type { ModelCatalogPhase } from "@/types";
 import { Table } from "..";
 import ModelCatalogStatus from "@/components/business/ModelCatalogStatus";
+import ModelTask from "@/components/business/ModelTask";
 import { Trash2 } from "lucide-react";
 
 export const useModelCatalogColumns = () => {
@@ -11,6 +12,18 @@ export const useModelCatalogColumns = () => {
         accessorKey="spec.model.name"
         id="model"
         enableHiding
+      />
+    ),
+    task: (
+      <Table.Column
+        header={"Task"}
+        accessorKey="spec.model.task"
+        id="task"
+        enableHiding
+        cell={({ row }) => {
+          const { model } = row.original.spec;
+          return <ModelTask task={model.task} />;
+        }}
       />
     ),
     engine: (
