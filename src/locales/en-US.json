@@ -12,7 +12,9 @@
 			"divider": "or",
 			"fields": {
 				"email": "Email",
-				"password": "Password"
+				"password": "Password",
+				"emailPlaceholder": "you@example.com",
+				"passwordPlaceholder": "••••••••"
 			},
 			"errors": {
 				"validEmail": "Invalid email address",
@@ -22,28 +24,37 @@
 			"buttons": {
 				"submit": "Login",
 				"forgotPassword": "Forgot password?",
-				"noAccount": "Don’t have an account?",
-				"rememberMe": "Remember me"
+				"noAccount": "Don't have an account?",
+				"rememberMe": "Remember me",
+				"loading": "Loading..."
 			}
 		},
 		"forgotPassword": {
 			"title": "Forgot your password?",
+			"signin": "Sign in",
 			"fields": {
-				"email": "Email"
+				"email": "Email",
+				"emailPlaceholder": "you@example.com"
 			},
 			"errors": {
 				"validEmail": "Invalid email address",
 				"requiredEmail": "Email is required"
 			},
 			"buttons": {
-				"submit": "Send reset instructions"
+				"submit": "Send reset instructions",
+				"backLogin": "Back to login",
+				"loading": "Loading..."
 			}
 		},
 		"register": {
 			"title": "Sign up for your account",
+			"signin": "Sign in",
+			"divider": "or",
 			"fields": {
 				"email": "Email",
-				"password": "Password"
+				"password": "Password",
+				"emailPlaceholder": "you@example.com",
+				"passwordPlaceholder": "••••••••"
 			},
 			"errors": {
 				"validEmail": "Invalid email address",
@@ -51,15 +62,18 @@
 				"requiredPassword": "Password is required"
 			},
 			"buttons": {
-				"submit": "Register",
-				"haveAccount": "Have an account?"
+				"submit": "Sign up",
+				"haveAccount": "Have an account?",
+				"loading": "Loading..."
 			}
 		},
 		"updatePassword": {
-			"title": "Update password",
+			"title": "Set New Password",
 			"fields": {
 				"password": "New Password",
-				"confirmPassword": "Confirm new password"
+				"confirmPassword": "Confirm New Password",
+				"passwordPlaceholder": "●●●●●●●●",
+				"confirmPasswordPlaceholder": "●●●●●●●●"
 			},
 			"errors": {
 				"confirmPasswordNotMatch": "Passwords do not match",
@@ -67,7 +81,8 @@
 				"requiredConfirmPassword": "Confirm password is required"
 			},
 			"buttons": {
-				"submit": "Update"
+				"submit": "Update",
+				"loading": "Loading..."
 			}
 		},
 		"error": {
@@ -127,6 +142,18 @@
 		"actions": "Actions",
 		"columns": "Columns",
 		"toggleColumns": "Toggle columns",
+		"noResults": "No results",
+		"filter": "{{column}} Filter",
+		"selectAll": "Select all",
+		"bulkActions": "Bulk Actions",
+		"pagination": {
+			"rowsPerPage": "Rows per page",
+			"page": "Page {{current}} of {{total}}",
+			"goToFirstPage": "Go to first page",
+			"goToPreviousPage": "Go to previous page",
+			"goToNextPage": "Go to next page",
+			"goToLastPage": "Go to last page"
+		},
 		"column": {
 			"name": "Name",
 			"workspace": "Workspace",
@@ -473,6 +500,19 @@
 		"title": "Developer"
 	},
 	"components": {
+		"ui": {
+			"combobox": {
+				"select": "Select"
+			},
+			"dialog": {
+				"close": "Close"
+			},
+			"sidebar": {
+				"title": "Sidebar",
+				"description": "Displays the mobile sidebar.",
+				"toggle": "Toggle Sidebar"
+			}
+		},
 		"yamlImport": {
 			"importYaml": "Import YAML",
 			"title": "Import Resources from YAML",
@@ -569,6 +609,17 @@
 				"off": "Off"
 			},
 			"defaultPanelTitle": "Grafana Panel {{id}}"
+		},
+		"jsonSchemaValueVisualizer": {
+			"undefined": "undefined",
+			"null": "null",
+			"typeMismatch": "type miss match: expect {{expectedType}}, actual {{actualType}}",
+			"noValue": "no value",
+			"root": "Root"
+		},
+		"jsonSchemaVisualizer": {
+			"required": "required",
+			"root": "Root"
 		}
 	},
 	"status": {
