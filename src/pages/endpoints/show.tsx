@@ -22,6 +22,8 @@ import Loader from "@/components/theme/components/loader";
 import { useCallback, useRef } from "react";
 import RerankPlayground from "@/components/business/RerankPlayground";
 import { useTranslation } from "react-i18next";
+import GrafanaPanels from "@/components/business/GrafanaPanels";
+import { useSystemApi } from "@/hooks/use-system-api";
 
 const RayDashboardTab = ({ record }: { record: Endpoint }) => {
   const { t } = useTranslation();
@@ -87,6 +89,7 @@ const RayDashboardTab = ({ record }: { record: Endpoint }) => {
 
 export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
   const { t } = useTranslation();
+  const { grafanaUrl } = useSystemApi();
   const {
     query: { data, isLoading },
   } = useShow<Endpoint>();
@@ -121,6 +124,9 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
           <TabsTrigger value="basic">{t("endpoints.tabs.basic")}</TabsTrigger>
           <TabsTrigger value="ray">
             {t("endpoints.tabs.rayDashboard")}
+          </TabsTrigger>
+          <TabsTrigger value="monitor">
+            {t("endpoints.tabs.monitor")}
           </TabsTrigger>
           <TabsTrigger value="playground">
             {t("endpoints.tabs.playground")}
@@ -234,6 +240,85 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
         </TabsContent>
         <TabsContent value="ray" className="h-[calc(100%-theme('spacing.9'))]">
           <RayDashboardTab record={record} />
+        </TabsContent>{" "}
+        <TabsContent
+          value="monitor"
+          className="h-[calc(100%-theme('spacing.9'))] overflow-auto"
+        >
+          {grafanaUrl ? (
+            <GrafanaPanels
+              dashboardConfig={{
+                baseUrl: grafanaUrl,
+                dashboardId: "rayServeDeploymentDashboard",
+                orgId: 1,
+                timezone: "browser",
+                variables: {
+                  datasource: "neutree-cluster",
+                  Application: record.metadata.name,
+                  Deployment: "$__all",
+                  Replica: "$__all",
+                  Route: "$__all",
+                  Cluster: record.spec.cluster,
+                },
+              }}
+              panels={[
+                {
+                  id: 1,
+                },
+                {
+                  id: 2,
+                },
+                {
+                  id: 3,
+                },
+                {
+                  id: 4,
+                },
+                {
+                  id: 5,
+                },
+                {
+                  id: 6,
+                },
+                {
+                  id: 7,
+                },
+                {
+                  id: 8,
+                },
+                {
+                  id: 9,
+                },
+                {
+                  id: 10,
+                },
+                {
+                  id: 11,
+                },
+                {
+                  id: 12,
+                },
+                {
+                  id: 13,
+                },
+                {
+                  id: 14,
+                },
+                {
+                  id: 15,
+                },
+              ]}
+              enableAutoRefresh={true}
+              refreshIntervals={[0, 5, 10, 30, 60, 300, 600]}
+              className="w-full"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">
+                {t("common.messages.grafanaNotConfigured")}
+              </p>
+            </div>
+          )}
         </TabsContent>
         <TabsContent
           value="playground"
