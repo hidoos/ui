@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import ChatPlayground from "@/components/business/ChatPlayground";
 import EmbeddingPlayground from "@/components/business/EmbeddingPlayground";
 import { getRayDashboardProxy } from "@/lib/api";
@@ -27,7 +26,7 @@ import EndpointEngine from "@/components/business/EndpointEngine";
 import ModelTask from "@/components/business/ModelTask";
 import JSONSchemaValueVisualizer from "@/components/business/JsonSchemaValueVisualizer";
 import Loader from "@/components/theme/components/loader";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, Suspense, lazy } from "react";
 import RerankPlayground from "@/components/business/RerankPlayground";
 import { useTranslation } from "react-i18next";
 import GrafanaPanels from "@/components/business/GrafanaPanels";
@@ -36,6 +35,13 @@ import {
   getEndpointGrafanaProps,
   getVllmGrafanaProps,
 } from "@/lib/grafana-configs";
+
+// Lazy load EndpointLogTabs
+const EndpointLogTabs = lazy(() =>
+  import("@/components/business/EndpointLogTabs").then((module) => ({
+    default: module.EndpointLogTabs,
+  })),
+);
 
 const RayDashboardTab = ({ record }: { record: Endpoint }) => {
   const { t } = useTranslation();
@@ -143,6 +149,7 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
           <TabsTrigger value="monitor">
             {t("endpoints.tabs.monitor")}
           </TabsTrigger>
+          <TabsTrigger value="logs">{t("endpoints.tabs.logs")}</TabsTrigger>
           <TabsTrigger value="playground">
             {t("endpoints.tabs.playground")}
           </TabsTrigger>
@@ -320,6 +327,14 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
               </p>
             </div>
           )}
+        </TabsContent>
+        <TabsContent
+          value="logs"
+          className="h-[calc(100%-theme('spacing.9'))] overflow-hidden"
+        >
+          <Suspense fallback={<Loader width="20" height="20" />}>
+            <EndpointLogTabs endpoint={record} />
+          </Suspense>
         </TabsContent>
         <TabsContent
           value="playground"
