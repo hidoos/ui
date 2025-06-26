@@ -72,8 +72,7 @@
 			"fields": {
 				"password": "New Password",
 				"confirmPassword": "Confirm New Password",
-				"passwordPlaceholder": "●●●●●●●●",
-				"confirmPasswordPlaceholder": "●●●●●●●●"
+				"passwordPlaceholder": "••••••••"
 			},
 			"errors": {
 				"confirmPasswordNotMatch": "Passwords do not match",
@@ -115,11 +114,13 @@
 		"undo": "Undo",
 		"import": "Import",
 		"clone": "Clone",
-		"notAccessTitle": "You don't have permission to access"
+		"notAccessTitle": "You don't have permission to access",
+		"updatePassword": "Update Password"
 	},
 	"ui": {
 		"language": "Language",
-		"more": "More"
+		"more": "More",
+		"version": "Version"
 	},
 	"accessibility": {
 		"openMenu": "Open menu"
