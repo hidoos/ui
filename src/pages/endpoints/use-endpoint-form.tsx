@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Combobox as AsyncCombobox } from "@/components/ui/combobox";
 import { useWorkspace } from "@/components/theme/hooks";
 import { useCustom, useSelect } from "@refinedev/core";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import WorkspaceField from "@/components/business/WorkspaceField";
 import { CommandLoading } from "@/components/ui/command";
 import { Slider } from "@/components/ui/slider";
@@ -50,11 +50,13 @@ type ClusterResources = {
   cpu: { available: number; total: number };
   memory: { available: number; total: number }; // in GiB
   gpu: { available: number; total: number };
+  npu: { available: number; total: number };
   acceleratorTypes: Array<{
     label: string;
     value: string;
     available: number;
     total: number;
+    type: string;
   }>;
 };
 
@@ -99,30 +101,61 @@ const deepMerge = (
   return result;
 };
 
-const resourceMapping: Record<string, { label: string; apiValue: string }> = {
-  NVIDIAA10040G: { label: "NVIDIA A100 40G", apiValue: "NVIDIA_A100_40G" },
-  NVIDIAA10080G: { label: "NVIDIA A100 80G", apiValue: "NVIDIA_A100_80G" },
+const resourceMapping: Record<
+  string,
+  { label: string; apiValue: string; type: "gpu" | "npu" }
+> = {
+  NVIDIAA10040G: {
+    label: "NVIDIA A100 40G",
+    apiValue: "NVIDIA_A100_40G",
+    type: "gpu",
+  },
+  NVIDIAA10080G: {
+    label: "NVIDIA A100 80G",
+    apiValue: "NVIDIA_A100_80G",
+    type: "gpu",
+  },
   NVIDIATeslaV100: {
     label: "NVIDIA TESLA V100",
     apiValue: "NVIDIA_TESLA_V100",
+    type: "gpu",
   },
   NVIDIATeslaP100: {
     label: "NVIDIA TESLA P100",
     apiValue: "NVIDIA_TESLA_P100",
+    type: "gpu",
   },
-  NVIDIATeslaT4: { label: "NVIDIA TESLA T4", apiValue: "NVIDIA_TESLA_T4" },
-  NVIDIATeslaP4: { label: "NVIDIA TESLA P4", apiValue: "NVIDIA_TESLA_P4" },
-  NVIDIATeslaK80: { label: "NVIDIA TESLA K80", apiValue: "NVIDIA_TESLA_K80" },
+  NVIDIATeslaT4: {
+    label: "NVIDIA TESLA T4",
+    apiValue: "NVIDIA_TESLA_T4",
+    type: "gpu",
+  },
+  NVIDIATeslaP4: {
+    label: "NVIDIA TESLA P4",
+    apiValue: "NVIDIA_TESLA_P4",
+    type: "gpu",
+  },
+  NVIDIATeslaK80: {
+    label: "NVIDIA TESLA K80",
+    apiValue: "NVIDIA_TESLA_K80",
+    type: "gpu",
+  },
   NVIDIATeslaA10G: {
     label: "NVIDIA TESLA A10G",
     apiValue: "NVIDIA_TESLA_A10G",
+    type: "gpu",
   },
-  NVIDIAL40S: { label: "NVIDIA L40S", apiValue: "NVIDIA_L40S" },
-  NVIDIAL4: { label: "NVIDIA L4", apiValue: "NVIDIA_L4" },
-  NVIDIAL20: { label: "NVIDIA L20", apiValue: "NVIDIA_L20" },
-  NVIDIAA100: { label: "NVIDIA A100", apiValue: "NVIDIA_A100" },
-  NVIDIAH100: { label: "NVIDIA H100", apiValue: "NVIDIA_H100" },
-  NVIDIAH200: { label: "NVIDIA H200", apiValue: "NVIDIA_H200" },
+  NVIDIAL40S: { label: "NVIDIA L40S", apiValue: "NVIDIA_L40S", type: "gpu" },
+  NVIDIAL4: { label: "NVIDIA L4", apiValue: "NVIDIA_L4", type: "gpu" },
+  NVIDIAL20: { label: "NVIDIA L20", apiValue: "NVIDIA_L20", type: "gpu" },
+  NVIDIAA100: { label: "NVIDIA A100", apiValue: "NVIDIA_A100", type: "gpu" },
+  NVIDIAH100: { label: "NVIDIA H100", apiValue: "NVIDIA_H100", type: "gpu" },
+  NVIDIAH200: { label: "NVIDIA H200", apiValue: "NVIDIA_H200", type: "gpu" },
+  HUAWEIAscend310P3: {
+    label: "HUAWEI Ascend 310P3",
+    apiValue: "HUAWEI_Ascend310P3",
+    type: "npu",
+  },
 };
 
 // Helper function to parse cluster resources from Ray API response
@@ -159,6 +192,13 @@ const parseClusterResources = (
     total: gpuUsage[1],
   };
 
+  // Parse NPU
+  const npuUsage = usage.NPU || [0, 0];
+  const npu = {
+    available: Math.max(0, npuUsage[1] - npuUsage[0]),
+    total: npuUsage[1],
+  };
+
   // Parse accelerator types
   const acceleratorTypes = [];
   for (const [key, value] of Object.entries(usage)) {
@@ -169,22 +209,32 @@ const parseClusterResources = (
         value: resource.apiValue,
         available: Math.max(0, value[1] - value[0]),
         total: value[1],
+        type: resource.type,
       });
     }
   }
 
-  // Add generic option
+  // Add generic options
   acceleratorTypes.unshift({
     label: "Generic",
     value: "-",
     available: gpu.available,
     total: gpu.total,
+    type: "gpu",
+  });
+  acceleratorTypes.unshift({
+    label: "Generic",
+    value: "-",
+    available: npu.available,
+    total: npu.total,
+    type: "npu",
   });
 
   return {
     cpu,
     memory,
     gpu,
+    npu,
     acceleratorTypes,
   };
 };
@@ -195,11 +245,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
   const [selectedModelCatalog, setSelectedModelCatalog] = useState<string>("");
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [modelSearch, setModelSearch] = useState("");
-
-  const previousValuesRef = useRef<{
-    currentModelName?: string;
-    currentRegistry?: string;
-  }>({});
 
   const form = useForm<Endpoint>({
     mode: "all",
@@ -229,6 +274,7 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
           gpu: 0,
           accelerator: {
             "-": 0,
+            NPU: 0,
           },
         },
         replicas: {
@@ -246,10 +292,32 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     },
     refineCoreProps: {
       autoSave: {
-        enabled: true,
+        enabled: false,
       },
     },
     warnWhenUnsavedChanges: true,
+    resolver: (values) => {
+      const errors: Record<string, unknown> = {};
+
+      if (action === "create" && currentRegistry && currentModelName) {
+        const modelExists =
+          modelsData.data?.data.some(
+            (model: GeneralModel) => model.name === currentModelName,
+          ) ?? false;
+
+        if (!modelExists) {
+          errors["-model-catalog"] = {
+            type: "manual",
+            message: t("endpoints.messages.modelNotFoundInRegistry"),
+          };
+        }
+      }
+
+      return {
+        values,
+        errors,
+      };
+    },
   });
 
   const workspace = form.watch("metadata.workspace");
@@ -303,32 +371,16 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
 
   const isEdit = action === "edit";
 
-  // Auto-initialize model search with template model name when available
-  const effectiveModelSearch = useMemo(() => {
-    if (modelSearch) return modelSearch;
-    if (currentRegistry && currentModelName && !isEdit) {
-      return currentModelName;
-    }
-    return "";
-  }, [modelSearch, currentRegistry, currentModelName, isEdit]);
+  // Auto-initialize model search with current model name for better UX
+  const effectiveModelSearch = modelSearch || currentModelName || "";
 
-  const shouldFetchModels = Boolean(currentRegistry && effectiveModelSearch);
   const modelsData = useCustom({
-    url: `/workspaces/${workspace}/model_registries/${currentRegistry}/models?search=${effectiveModelSearch}`,
+    url: `/workspaces/${workspace}/model_registries/${currentRegistry}/models?${effectiveModelSearch ? `search=${effectiveModelSearch}` : ""}&limit=20`,
     method: "get",
     queryOptions: {
-      enabled: shouldFetchModels,
+      enabled: Boolean(currentRegistry),
     },
   });
-
-  const isModelFoundInRegistry = useMemo(() => {
-    if (!modelsData.data?.data || !currentModelName || !currentRegistry) {
-      return false;
-    }
-    return modelsData.data.data.some(
-      (model: GeneralModel) => model.name === currentModelName,
-    );
-  }, [modelsData.data?.data, currentModelName, currentRegistry]);
 
   const { engineNames, engineVersions, engineTasks } = useMemo(() => {
     const engineNames: string[] = [];
@@ -355,41 +407,6 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
         )?.values_schema
       : undefined;
   }, [engineSpec.engine, engineSpec.version, engineVersions]);
-
-  useEffect(() => {
-    const prev = previousValuesRef.current;
-
-    if (
-      prev.currentModelName === currentModelName &&
-      prev.currentRegistry === currentRegistry
-    ) {
-      return;
-    }
-
-    previousValuesRef.current = {
-      currentModelName,
-      currentRegistry,
-    };
-
-    if (action === "create" && currentRegistry && currentModelName) {
-      if (!isModelFoundInRegistry && modelsData.data) {
-        form.setError("spec.model.name", {
-          type: "manual",
-          message: `${t("endpoints.messages.modelNotFoundInRegistry")}`,
-        });
-      } else if (isModelFoundInRegistry) {
-        form.clearErrors("spec.model.name");
-      }
-    }
-  }, [
-    isModelFoundInRegistry,
-    currentRegistry,
-    currentModelName,
-    modelsData.data,
-    action,
-    form,
-    t,
-  ]);
 
   // Handle model catalog selection with merge logic
   const handleModelCatalogSelect = (catalogId: string) => {
@@ -461,6 +478,122 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     }
   };
 
+  // Helper function to render accelerator fields (GPU/NPU)
+  const renderAcceleratorFields = (type: "gpu" | "npu") => {
+    const isGpu = type === "gpu";
+    const totalResources = clusterResources?.[type];
+
+    if (!totalResources?.total) {
+      return null;
+    }
+
+    const typeOptions = (clusterResources?.acceleratorTypes || []).filter(
+      (v) => v.type === type,
+    );
+
+    const currentAcceleratorType = Object.keys(acceleratorValue)[0];
+    const currentAccelerator = clusterResources?.acceleratorTypes.find(
+      (acc) => acc.value === currentAcceleratorType && acc.type === type,
+    );
+
+    // Extract computed values
+    const currentAcceleratorValue = acceleratorValue[currentAcceleratorType] || 0;
+    const specificAccelerator = clusterResources?.acceleratorTypes.find(
+      (acc) => acc.value === currentAcceleratorType && acc.type === type,
+    );
+    const maxSliderValue = !clusterResources ? 2 : 
+      (specificAccelerator?.available ?? totalResources?.available ?? 0);
+
+    const typeLabel = isGpu
+      ? t("endpoints.fields.gpu")
+      : t("endpoints.fields.npu");
+    const countLabel = isGpu
+      ? t("endpoints.fields.gpuCount")
+      : t("endpoints.fields.npuCount");
+    const unitLabel = isGpu ? "GPUs" : "NPUs";
+    const placeholderKey = isGpu
+      ? "endpoints.placeholders.selectGpuType"
+      : "endpoints.placeholders.selectNpuType";
+
+    return (
+      <>
+        <Field {...form} name="-accelerator-type" label={typeLabel}>
+          <Combobox
+            placeholder={t(placeholderKey)}
+            options={typeOptions}
+            value={Object.keys(acceleratorValue)[0]}
+            onChange={(value) => {
+              const currentCount =
+                acceleratorValue[Object.keys(acceleratorValue)[0]];
+              form.setValue("spec.resources.accelerator", {
+                [value as string]: currentCount,
+              });
+              
+              // Update the corresponding accelerator field based on type
+              if (type === "npu") {
+                form.setValue(
+                  "spec.resources.accelerator.NPU",
+                  (currentCount as number) ?? 0,
+                );
+              } else {
+                form.setValue(
+                  `spec.resources.${type}`,
+                  (currentCount as number) ?? 0,
+                );
+              }
+            }}
+            disabled={clusterStatusQuery.isLoading || !currentCluster}
+          />
+        </Field>
+
+        <Field {...form} name="-accelerator-value" label={countLabel}>
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>
+                {currentAcceleratorValue} {unitLabel}
+              </span>
+              {clusterResources && (
+                <span>
+                  {currentAccelerator
+                    ? `Available: ${currentAccelerator.available} / ${currentAccelerator.total}`
+                    : `Available: ${totalResources?.available} / ${totalResources?.total}`}
+                </span>
+              )}
+            </div>
+            <Slider
+              min={0}
+              max={maxSliderValue}
+              step={0.5}
+              value={[currentAcceleratorValue]}
+              onValueChange={(value) => {
+                const currentAcceleratorType = Object.keys(acceleratorValue)[0];
+                form.setValue("spec.resources.accelerator", {
+                  [currentAcceleratorType]: value[0],
+                });
+                
+                // Update the corresponding accelerator field based on type
+                if (type === "npu") {
+                  form.setValue(
+                    "spec.resources.accelerator.NPU",
+                    (value[0] as number) ?? 0,
+                  );
+                } else {
+                  form.setValue(
+                    `spec.resources.${type}`,
+                    (value[0] as number) ?? 0,
+                  );
+                }
+
+                console.log(form.getValues());
+              }}
+              disabled={clusterStatusQuery.isLoading || !currentCluster}
+            />
+          </div>
+        </Field>
+      </>
+    );
+  };
+
   return {
     form,
     metadataFields: (
@@ -523,13 +656,17 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
             }))}
             onChange={(value) => {
               form.setValue("spec.model.registry", value as string);
-              // Reset model search when registry changes
+              // Reset model search and catalog selection when registry changes
               setModelSearch("");
             }}
           />
         </Field>
         {!isEdit && (
-          <Field {...form} name="-" label={t("endpoints.fields.modelCatalog")}>
+          <Field
+            {...form}
+            name="-model-catalog"
+            label={t("endpoints.fields.modelCatalog")}
+          >
             <Combobox
               placeholder={t("endpoints.placeholders.selectModelCatalog")}
               disabled={modelCatalogs.query.isLoading}
@@ -566,6 +703,10 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
               min={0}
               max={clusterResources?.cpu.available ?? 0}
               step={0.1}
+              value={[form.watch("spec.resources.cpu")]}
+              onValueChange={(value) => {
+                form.setValue("spec.resources.cpu", value[0]);
+              }}
               disabled={clusterStatusQuery.isLoading || !currentCluster}
             />
           </div>
@@ -590,90 +731,20 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
               min={0}
               max={clusterResources?.memory.available ?? 0}
               step={0.5}
-              disabled={clusterStatusQuery.isLoading || !currentCluster}
-            />
-          </div>
-        </Field>
-
-        <Field {...form} name="-" label={t("endpoints.fields.gpu")}>
-          <Combobox
-            placeholder={t("endpoints.placeholders.selectGpuType")}
-            options={
-              clusterResources?.acceleratorTypes || [
-                {
-                  label: t("endpoints.options.generic"),
-                  value: "-",
-                  available: 0,
-                  total: 0,
-                },
-                {
-                  label: t("endpoints.options.l4"),
-                  value: "NVIDIA_L4",
-                  available: 0,
-                  total: 0,
-                },
-                {
-                  label: t("endpoints.options.t4"),
-                  value: "NVIDIA_TESLA_T4",
-                  available: 0,
-                  total: 0,
-                },
-              ]
-            }
-            value={Object.keys(acceleratorValue)[0]}
-            onChange={(value) => {
-              form.setValue("spec.resources.accelerator", {
-                [value as string]:
-                  acceleratorValue[Object.keys(acceleratorValue)[0]],
-              });
-            }}
-            disabled={clusterStatusQuery.isLoading || !currentCluster}
-          />
-        </Field>
-
-        <Field {...form} name="-" label={t("endpoints.fields.gpuCount")}>
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{Object.values(acceleratorValue)[0] as number} GPUs</span>
-              {clusterResources && (
-                <span>
-                  {(() => {
-                    const currentAcceleratorType =
-                      Object.keys(acceleratorValue)[0];
-                    const accelerator = clusterResources.acceleratorTypes.find(
-                      (acc) => acc.value === currentAcceleratorType,
-                    );
-                    return accelerator
-                      ? `Available: ${accelerator.available} / ${accelerator.total}`
-                      : `Available: ${clusterResources.gpu.available} / ${clusterResources.gpu.total}`;
-                  })()}
-                </span>
-              )}
-            </div>
-            <Slider
-              min={0}
-              max={(() => {
-                if (!clusterResources) return 2;
-                const currentAcceleratorType = Object.keys(acceleratorValue)[0];
-                const accelerator = clusterResources.acceleratorTypes.find(
-                  (acc) => acc.value === currentAcceleratorType,
-                );
-                return (
-                  accelerator?.available ?? clusterResources.gpu.available ?? 0
-                );
-              })()}
-              step={0.5}
-              value={Object.values(acceleratorValue) as number[]}
+              value={[form.watch("spec.resources.memory")]}
               onValueChange={(value) => {
-                form.setValue("spec.resources.accelerator", {
-                  [Object.keys(acceleratorValue)[0]]: value[0],
-                });
-                form.setValue("spec.resources.gpu", (value[0] as number) ?? 0);
+                form.setValue("spec.resources.memory", value[0]);
               }}
               disabled={clusterStatusQuery.isLoading || !currentCluster}
             />
           </div>
         </Field>
+
+        {/* GPU Fields */}
+        {renderAcceleratorFields("gpu")}
+
+        {/* NPU Fields */}
+        {renderAcceleratorFields("npu")}
 
         {/* Cluster status indicator */}
         {currentCluster && (
@@ -741,28 +812,15 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
                     shouldFilter={false}
                     onSearchChange={setModelSearch}
                     triggerClassName="w-full"
-                    // Disable if no registry selected OR model not found in registry after search
-                    disabled={
-                      !currentRegistry ||
-                      (!isModelFoundInRegistry && !!modelsData.data)
-                    }
-                    // Show template model name even when disabled
+                    // Only disable if no registry is selected
+                    disabled={!currentRegistry}
+                    // Show current model name
                     value={currentModelName}
                     // Handle model selection
                     onChange={(value: string) => {
                       form.setValue("spec.model.name", value);
                     }}
                   />
-                  {/* Show validation status */}
-                  {currentRegistry && currentModelName && modelsData.data && (
-                    <div className="text-sm">
-                      {isModelFoundInRegistry ? null : (
-                        <span className="text-red-600">
-                          {t("endpoints.messages.modelNotFoundInRegistry")}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
             </Field>
