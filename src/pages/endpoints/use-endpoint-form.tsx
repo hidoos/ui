@@ -145,7 +145,7 @@ const resourceMapping: Record<
     apiValue: "NVIDIA_TESLA_A10G",
     type: "gpu",
   },
-  AMDInstinctMI300XVF: {
+  AMDInstinctMi300XVf: {
     label: "AMD Instinct MI300X VF",
     apiValue: "AMD_Instinct_MI300X_VF",
     type: "gpu",
