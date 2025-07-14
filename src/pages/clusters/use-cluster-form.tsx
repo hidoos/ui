@@ -18,6 +18,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
     { label: t("clusters.options.none"), value:NO_ACCELERATOR},
     { label: "NVIDIA GPU", value: "nvidia.com/gpu" },
     { label: "Ascend310P", value: "huawei.com/Ascend310P" },
+    { label: "AMD GPU", value: "amd.com/gpu" },
   ];
 
 
