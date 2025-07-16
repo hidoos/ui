@@ -29,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatToDecimal } from "@/lib/utils";
+import { formatToDecimal } from "@/lib/unit";
 
 // Types for Ray cluster status API response
 type RayClusterResourceUsage = {
