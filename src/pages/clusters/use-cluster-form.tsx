@@ -2,12 +2,13 @@ import FormCardGrid from "@/components/business/FormCardGrid";
 import NodeIPsField from "@/components/business/NodeIPsField";
 import WorkspaceField from "@/components/business/WorkspaceField";
 import { Combobox, Field, Select } from "@/components/theme";
+import { FieldError } from "@/components/theme/components/FieldError";
 import { useWorkspace } from "@/components/theme/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isValidIPAddress, isValidPath } from "@/lib/utils";
+import { isValidIPAddress, isValidPath } from "@/lib/validate";
 import type { Cluster, HostPathCache, ImageRegistry, ModelCache } from "@/types";
 import { useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
@@ -147,16 +148,6 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
         model_registry_type: currentCache.model_registry_type || 'bentoml'
       });
     }
-  };
-
-  const FieldError = ({ error }: { error?: { message?: string } }) => {
-    if (!error?.message) return null;
-    
-    return (
-      <p className="text-sm text-red-500 mt-1">
-        {error.message}
-      </p>
-    );
   };
 
   return {

@@ -36,7 +36,7 @@ import {
   getEndpointGrafanaProps,
   getVllmGrafanaProps,
 } from "@/lib/grafana-configs";
-import { formatToDecimal } from "@/lib/utils";
+import { formatToDecimal } from "@/lib/unit";
 
 // Lazy load EndpointLogTabs
 const EndpointLogTabs = lazy(() =>
