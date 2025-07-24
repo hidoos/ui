@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -66,6 +66,7 @@ export const YamlExportDialog = ({
     areAllResourcesSelected,
     isSelectingAll,
     loadingResources,
+    setResourceTypes,
     toggleResourceType,
     toggleEntity,
     loadEntities,
@@ -75,11 +76,19 @@ export const YamlExportDialog = ({
     selectAllResources,
   } = useYamlExport();
 
+  useEffect(() => {
+    setResourceTypes((prevResourceTypes) => {
+      const updatedResourceTypes = { ...prevResourceTypes };
+      Object.entries(updatedResourceTypes).forEach(([_, resourceType]) => {
+        resourceType.loaded = false;
+      });
+      return updatedResourceTypes;
+    });
+  }, [isOpen]);
+
   const handleResourceTypeToggle = async (type: ExportableResource) => {
     // Load entities if not loaded yet
-    if (!resourceTypes[type].loaded) {
-      await loadEntities(type);
-    }
+    await loadEntities(type);
     toggleResourceType(type);
   };
 
@@ -90,9 +99,7 @@ export const YamlExportDialog = ({
     } else {
       newExpanded.add(type);
       // Load entities when expanding
-      if (!resourceTypes[type].loaded) {
-        await loadEntities(type);
-      }
+      await loadEntities(type);
     }
     setExpandedResourceTypes(newExpanded);
   };
@@ -305,7 +312,7 @@ export const YamlExportDialog = ({
                             />
                             <Label className="font-medium flex items-center gap-2">
                               {resourceType.label}
-                              {loadingResources.has(resourceType.type) && (
+                              {loadingResources.has(resourceType.type) && !resourceType.selected && (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               )}
                             </Label>
