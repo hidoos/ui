@@ -262,7 +262,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
       <FormCardGrid title={t("clusters.sections.provider")}>
         {type === "ssh" && (
           <Field {...form} name="spec.config.provider" className="col-span-4">
-            <NodeIPsField />
+            <NodeIPsField disabled={isEdit} />
           </Field>
         )}
 
@@ -368,7 +368,6 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
         >
           <Input
             type="number"
-            disabled={isEdit}
             onChange={(evt) => {
               const value = Number(evt.target.value);
               form.setValue(
@@ -683,14 +682,14 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
           name="spec.config.auth.ssh_user"
           label={t("clusters.fields.sshUser")}
         >
-          <Input placeholder={t("clusters.placeholders.sshUserExample")} />
+          <Input placeholder={t("clusters.placeholders.sshUserExample")} disabled={isEdit}/>
         </Field>
         <Field
           {...form}
           name="spec.config.auth.ssh_private_key"
           label={t("clusters.fields.sshPrivateKey")}
         >
-          <Input type="password" />
+          <Input type="password" disabled={isEdit} />
         </Field>
       </FormCardGrid>
     ),

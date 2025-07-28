@@ -69,8 +69,21 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
         </Field>
         <Field
           {...form}
-          name="confirmPassword"
           label={translate("user_profiles.fields.confirmPassword")}
+          {...form.register("confirmPassword", {
+            required: {
+              value: true,
+              message: translate(
+                "user_profiles.validation.confirmPasswordRequired",
+              ),
+            },
+            validate: (value: string) => {
+              return (
+                value === form.getValues("password") ||
+                translate("user_profiles.validation.confirmPasswordNotMatch")
+              );
+            },
+          })}
         >
           <Input type="password" />
         </Field>
