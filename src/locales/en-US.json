@@ -4,6 +4,23 @@
 			"grafanaNotConfigured": "Grafana monitoring is not configured."
 		}
 	},
+	"appearance": {
+		"light": "Light Mode",
+		"dark": "Dark Mode",
+		"system": "Follow System"
+	},
+	"models": {
+		"scheduler": {
+			"powerOfTwo": "Power of two",
+			"consistentHashing": "Consistent hashing",
+			"unavailable": "Unavailable"
+		},
+		"tasks": {
+			"text-generation": "Text Generation",
+			"text-embedding": "Text Embedding",
+			"text-rerank": "Text Rerank"
+		}
+	},
 	"pages": {
 		"login": {
 			"title": "Sign in to your account",
@@ -397,9 +414,6 @@
 			"replica": "Replica",
 			"scheduler": "Scheduler",
 			"variables": "Variables"
-		},
-		"values": {
-			"powerOfTwo": "Power of two"
 		}
 	},
 	"image_registries": {
@@ -497,9 +511,7 @@
 			"selectSchedulerType": "Select Scheduler Type"
 		},
 		"options": {
-			"generic": "Generic",
-			"powerOfTwo": "Power of two",
-			"consistentHashing": "Consistent hashing"
+			"generic": "Generic"
 		},
 		"messages": {
 			"rayDashboardNotAvailable": "Ray dashboard is not available.",
@@ -638,7 +650,16 @@
 	"components": {
 		"ui": {
 			"combobox": {
-				"select": "Select"
+				"select": "Select",
+				"placeholders": {
+					"SearchPlaceholder": "Type a command or search..."
+				},
+				"messages": {
+					"noResults": "No results found"
+				},
+				"headings": {
+					"suggestions": "Suggestions"
+				}
 			},
 			"dialog": {
 				"close": "Close"
@@ -647,6 +668,12 @@
 				"title": "Sidebar",
 				"description": "Displays the mobile sidebar.",
 				"toggle": "Toggle Sidebar"
+			},
+			"filter": {
+				"selectAll": "All",
+				"modelTask": {
+					"title": "Filter by Task"
+				}
 			}
 		},
 		"yamlImport": {
@@ -870,6 +897,18 @@
 			"cluster": {
 				"Pending": "Pending",
 				"Running": "Running",
+				"Failed": "Failed",
+				"Deleted": "Deleted"
+			},
+			"registry": {
+				"Pending": "Pending",
+				"Connected": "Connected",
+				"Failed": "Failed",
+				"Deleted": "Deleted"
+			},
+			"catalog": {
+				"Pending": "Pending",
+				"Ready": "Ready",
 				"Failed": "Failed",
 				"Deleted": "Deleted"
 			},
