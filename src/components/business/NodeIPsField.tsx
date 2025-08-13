@@ -2,6 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/lib/i18n";
+import { isValidIPAddress } from "@/lib/validate";
 import { AlertCircle, Plus, Trash } from "lucide-react";
 import {
   type ChangeEventHandler,
@@ -10,10 +12,6 @@ import {
   useEffect,
   useState,
 } from "react";
-
-// IP address validation regex
-const ipRegex =
-  /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
 type IpsValue = {
   head_ip: string;
@@ -43,9 +41,10 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
     const [newWorkerIp, setNewWorkerIp] = useState("");
     const [errors, setErrors] = useState({
       headIp: "",
-      workerIps: {},
       newWorkerIp: "",
     });
+
+    const { t } = useTranslation();
 
     useEffect(() => {
       setHeadIp(value.head_ip || "");
@@ -70,11 +69,13 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
 
     // Validate an IP address
     const validateIp = useCallback(
-      (ip: string) => {
-        if (!ip) return "IP address is required";
-        if (!ipRegex.test(ip)) return "Invalid IP address format";
+      (ip: string, isrequired = false) => {
+        if (!isrequired && !ip) return "";
+        if (!ip) return t("clusters.validation.ipRequired");
+        if (!isValidIPAddress(ip))
+          return t("clusters.validation.invalidIPAddress");
         if (ipIsDuplicated(ip)) {
-          return "This IP address is already in use";
+          return t("clusters.validation.ipDuplicated");
         }
         return "";
       },
@@ -93,12 +94,12 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
     }, [newWorkerIp, validateIp]);
 
     // Handle head node IP change
-    const handleheadIpChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const handleHeadIpChange: ChangeEventHandler<HTMLInputElement> = (e) => {
       const ip = e.target.value;
       setHeadIp(ip);
       setErrors((prev) => ({
         ...prev,
-        headIp: validateIp(ip),
+        headIp: validateIp(ip, true),
       }));
     };
 
@@ -129,24 +130,35 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
     };
 
     // Remove a worker node IP
-    const removeWorkerNodeIp = (ipToRemove: string) => {
-      setWorkerIps(workerIps.filter((ip) => ip !== ipToRemove));
+    const removeWorkerNodeIp = useCallback(
+      (ipToRemove: string) => (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-      // Clear any errors for this IP
-      setErrors((prev) => {
-        const updatedErrors = { ...prev };
-        if (ipToRemove in updatedErrors.workerIps) {
-          delete (updatedErrors.workerIps as Record<string, unknown>)[
-            ipToRemove
-          ];
+        setWorkerIps((prev: string[]) =>
+          prev.filter((ip: string) => ip !== ipToRemove),
+        );
+
+        setErrors((prev) => {
+          const updatedErrors = { ...prev };
+          if (ipToRemove === headIp) {
+            updatedErrors.headIp = "";
+          }
+          return updatedErrors;
+        });
+      },
+      [headIp],
+    );
+
+    const handleNewWorkerIpKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addWorkerNodeIp();
         }
-        if (ipToRemove === headIp) {
-          // invariant: headIP === ipToRemove is valid as the ipToRemove has been validated upon adding
-          updatedErrors.headIp = "";
-        }
-        return updatedErrors;
-      });
-    };
+      },
+      [addWorkerNodeIp],
+    );
 
     return (
       <div className="space-y-4" ref={ref} {...props}>
@@ -154,7 +166,9 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
         <Card className="border border-border">
           <CardHeader className="bg-secondary text-secondary-foreground py-2 px-4">
             <div className="flex items-center">
-              <CardTitle className="text-sm">Head Node IP</CardTitle>
+              <CardTitle className="text-sm">
+                {t("clusters.fields.sshHeadNodeIP")}
+              </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-4">
@@ -162,8 +176,8 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
               <div className="flex items-center">
                 <Input
                   value={headIp}
-                  onChange={handleheadIpChange}
-                  placeholder="e.g 192.168.1.1"
+                  onChange={handleHeadIpChange}
+                  placeholder={t("clusters.placeholders.sshHeadNodeExample")}
                   disabled={disabled}
                   className={errors.headIp ? "border-destructive" : ""}
                 />
@@ -182,9 +196,13 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
           <CardHeader className="bg-secondary text-secondary-foreground py-2 px-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <CardTitle className="text-sm">Worker Node IPs</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("clusters.fields.sshWorkerNodeIPs")}
+                </CardTitle>
               </div>
-              <Badge variant="outline">{workerIps.length} nodes</Badge>
+              <Badge variant="outline">
+                {workerIps.length} {t("clusters.labels.nodes")}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-4">
@@ -192,10 +210,10 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
             <div className="space-y-2 mb-4">
               {workerIps.length === 0 ? (
                 <div className="text-sm text-muted-foreground p-2 bg-muted rounded">
-                  No worker nodes added. Add at least one worker node.
+                  {t("clusters.messages.sshEmptyWorkerNodeIPs")}
                 </div>
               ) : (
-                workerIps.map((ip, index) => (
+                workerIps.map((ip: string, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-2 bg-card border border-border rounded"
@@ -207,8 +225,9 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeWorkerNodeIp(ip)}
+                        onClick={removeWorkerNodeIp(ip)}
                         className="h-8 w-8 p-0"
+                        type="button"
                       >
                         <Trash className="h-4 w-4 text-destructive" />
                       </Button>
@@ -219,40 +238,34 @@ const NodeIPsField = forwardRef<HTMLDivElement, NodeIPsFieldProps>(
             </div>
 
             {/* Add new worker node IP */}
-            {
-              <div className="flex flex-col">
-                <div className="flex items-center">
-                  <Input
-                    value={newWorkerIp}
-                    onChange={handleNewWorkerIpChange}
-                    placeholder="Add new worker node IP"
-                    className={`flex-1 ${
-                      errors.newWorkerIp ? "border-destructive" : ""
-                    }`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addWorkerNodeIp();
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={addWorkerNodeIp}
-                    className="ml-2"
-                    disabled={!newWorkerIp || !!errors.newWorkerIp}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-                {errors.newWorkerIp && (
-                  <div className="flex items-center mt-1 text-sm text-destructive">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    <span>{errors.newWorkerIp}</span>
-                  </div>
-                )}
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <Input
+                  value={newWorkerIp}
+                  onChange={handleNewWorkerIpChange}
+                  placeholder={t("clusters.placeholders.sshAddNewWorkerNode")}
+                  className={`flex-1 ${
+                    errors.newWorkerIp ? "border-destructive" : ""
+                  }`}
+                  onKeyDown={handleNewWorkerIpKeyDown}
+                />
+                <Button
+                  onClick={addWorkerNodeIp}
+                  className="ml-2"
+                  disabled={!newWorkerIp || !!errors.newWorkerIp}
+                  type="button"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t("buttons.add")}
+                </Button>
               </div>
-            }
+              {errors.newWorkerIp && (
+                <div className="flex items-center mt-1 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  <span>{errors.newWorkerIp}</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
