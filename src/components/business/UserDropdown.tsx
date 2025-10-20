@@ -14,7 +14,7 @@ import {
 import { useSystemApi } from "@/hooks/use-system-api";
 import { AVAILABLE_LOCALES, LOCALE_LABELS, useTranslation } from "@/lib/i18n";
 import { useGetIdentity, useGetLocale, useSetLocale } from "@refinedev/core";
-import { Check, ChevronDown, Globe, KeyRound } from "lucide-react";
+import { Check, ChevronDown, FileText, Globe, KeyRound } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 
 export const UserDropdown = () => {
@@ -61,8 +61,8 @@ export const UserDropdown = () => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem className="cursor-default focus:bg-transparent">
-          <div className="flex py-1 w-full items-center justify-between">
-            <div className="text-sm font-medium text-muted-foreground">
+          <div className="flex flex-col py-1">
+            <div className="text-sm font-medium text-foreground">
               {t("ui.version")}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
@@ -102,6 +102,14 @@ export const UserDropdown = () => {
           <Link href="/update-password" className="flex flex-row gap-2 w-full">
             <KeyRound size={16} className="mr-2" />
             {t("buttons.updatePassword")}
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <Link href="/license" className="flex flex-row gap-2 w-full">
+            <FileText size={16} className="mr-2" />
+            {t("buttons.license")}
           </Link>
         </DropdownMenuItem>
 
