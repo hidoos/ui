@@ -107,6 +107,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
   const type = form.watch("spec.type");
   const isKubernetes = type === "kubernetes";
   const isSSH = type === "ssh";
+  const isModelCacheDisabled = isEdit && isSSH;
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -339,7 +340,6 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
               // not supported yet
               // { label: t("clusters.options.ingress"), value: "Ingress" },
             ]}
-            disabled={isEdit}
           />
         </Field>
 
@@ -348,7 +348,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
           name="spec.config.kubernetes_config.router.replicas"
           label={t("clusters.fields.replicas")}
         >
-          <Input type="number" disabled={isEdit} />
+          <Input type="number" />
         </Field>
 
         <Field
@@ -356,7 +356,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
           name="spec.config.kubernetes_config.router.resources.cpu"
           label={t("clusters.fields.cpu")}
         >
-          <Input disabled={isEdit} />
+          <Input />
         </Field>
 
         <Field
@@ -364,7 +364,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
           name="spec.config.kubernetes_config.router.resources.memory"
           label={t("clusters.fields.memory")}
         >
-          <Input disabled={isEdit} />
+          <Input />
         </Field>
       </FormCardGrid>
     ) : null,
@@ -389,6 +389,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                         size="sm"
                         onClick={() => remove(index)}
                         className="text-red-500 hover:text-red-700"
+                        disabled={isModelCacheDisabled}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -411,6 +412,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                             !!(form.formState.errors.spec as any)?.config
                               ?.model_caches?.[index]?.name,
                           )}
+                          disabled={isModelCacheDisabled}
                         />
                       </Field>
 
@@ -449,6 +451,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                               value as "nfs" | "host_path" | "pvc",
                             );
                           }}
+                          disabled={isModelCacheDisabled}
                         />
                       </div>
                     </div>
@@ -484,6 +487,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                                 !!(form.formState.errors.spec as any)?.config
                                   ?.model_caches?.[index]?.nfs?.server,
                               )}
+                              disabled={isModelCacheDisabled}
                             />
                           </Field>
 
@@ -516,6 +520,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                                 !!(form.formState.errors.spec as any)?.config
                                   ?.model_caches?.[index]?.nfs?.path,
                               )}
+                              disabled={isModelCacheDisabled}
                             />
                           </Field>
                         </>
@@ -551,6 +556,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                                 ?.model_caches?.[index]?.host_path?.path,
                               "col-span-2",
                             )}
+                            disabled={isModelCacheDisabled}
                           />
                         </Field>
                       )}
@@ -579,6 +585,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                                   ?.model_caches?.[index]?.pvc?.resources
                                   ?.requests?.storage,
                               )}
+                              disabled={isModelCacheDisabled}
                             />
                           </Field>
 
@@ -599,6 +606,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                                   ?.model_caches?.[index]?.pvc
                                   ?.storageClassName,
                               )}
+                              disabled={isModelCacheDisabled}
                             />
                           </Field>
                         </>
@@ -614,18 +622,20 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                 {t("clusters.messages.noModelCaches")}
               </div>
             )}
-            <div className="flex gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addModelCache}
-                className="flex ml-auto gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {t("clusters.actions.addModelCache")}
-              </Button>
-            </div>
+            {fields.length < 1 && !isModelCacheDisabled && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addModelCache}
+                  className="flex ml-auto gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("clusters.actions.addModelCache")}
+                </Button>
+              </div>
+            )}
           </div>
         </FormCardGrid>
       </div>
