@@ -13,7 +13,7 @@
   "src/components/business/EndpointStatus.tsx": "00cdecf60ffa4b247f1624e4aaf0e4f3",
   "src/components/business/EngineStatus.tsx": "38c169ba3e38e6769e12dcc60754a9f8",
   "src/components/business/RerankPlayground.tsx": "000e9eb8559f3764068037279d4c4890",
-  "src/components/business/VariablesInput.tsx": "d62400864e9ae573d2e67bdb78455747",
+  "src/components/business/VariablesInput.tsx": "5a7392d15011ec3ea8c83905a6a6ee12",
   "src/components/business/YamlImportButton.tsx": "6a4ef354414cd46d8ed8f259bf4ad26a",
   "src/components/business/YamlImportDialog.tsx": "6f14617688d6f7f65a09402b6b5cf9e4",
   "src/hooks/use-yaml-import.ts": "c805ae7c5d7c0d35a4e09e7c29e87f2a",
