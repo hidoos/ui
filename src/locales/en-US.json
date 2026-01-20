@@ -1075,6 +1075,7 @@
 			"licenseType": "License Type",
 			"signDate": "Sign Date",
 			"period": "Valid Period",
+			"expirationDate": "Expiration Date",
 			"days": "days",
 			"maxGpus": "Max GPUs",
 			"serial": "Serial Number"
