@@ -32,8 +32,13 @@ import type {
 import { useCustom, useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+// Helper function to validate current usage against available resources
+const validateCurrentUsage = (currentUsage: number, total: number) => {
+  return Number(currentUsage || 0) <= total ? Number(currentUsage || 0) : 0;
+};
 
 // Deep merge function for form data with smart overriding
 function deepMerge(
@@ -235,19 +240,27 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
     );
   }, [selectedAccelerator, selectedCluster]);
 
-  // Max available resources - use single-node max when accelerator is selected
+  // Max available resources - validate currentUsage before using it in calculations
   const maxAvailable = useMemo(() => {
     // When accelerator is selected, use single-node max (for TP deployment)
     if (singleNodeMax) {
+      // Validate currentUsage against single node capacity
+      const validCurrentCpu = validateCurrentUsage(
+        currentUsage.cpu,
+        singleNodeMax.cpu.total,
+      );
+      const validCurrentMemory = validateCurrentUsage(
+        currentUsage.memory,
+        singleNodeMax.memory.total,
+      );
+
       return {
         cpu: {
-          available:
-            singleNodeMax.cpu.available + Number(currentUsage.cpu || 0),
+          available: singleNodeMax.cpu.available + validCurrentCpu,
           total: singleNodeMax.cpu.total,
         },
         memory: {
-          available:
-            singleNodeMax.memory.available + Number(currentUsage.memory || 0),
+          available: singleNodeMax.memory.available + validCurrentMemory,
           total: singleNodeMax.memory.total,
         },
         gpu: {
@@ -267,23 +280,33 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
       };
     }
 
+    // Validate currentUsage against cluster capacity
+    const clusterCpuAvailable = Number(clusterResources.cpu?.available || 0);
+    const clusterMemoryAvailable = Number(
+      clusterResources.memory?.available || 0,
+    );
+
+    const validCurrentCpu = validateCurrentUsage(
+      currentUsage.cpu,
+      clusterCpuAvailable,
+    );
+    const validCurrentMemory = validateCurrentUsage(
+      currentUsage.memory,
+      clusterMemoryAvailable,
+    );
+
     return {
       cpu: {
-        available:
-          Number(clusterResources.cpu?.available || 0) +
-          Number(currentUsage.cpu || 0),
+        available: clusterCpuAvailable + validCurrentCpu,
         total: clusterResources.cpu.total,
       },
       memory: {
-        available:
-          Number(clusterResources.memory?.available || 0) +
-          Number(currentUsage.memory || 0),
+        available: clusterMemoryAvailable + validCurrentMemory,
         total: clusterResources.memory.total,
       },
       gpu: { available: 0, total: 0 },
     };
   }, [singleNodeMax, clusterResources, currentUsage]);
-
   // Watch form values outside the useMemo to avoid dependency issues
   const cpuUsage = form.watch("spec.resources.cpu");
   const memoryUsage = form.watch("spec.resources.memory");
@@ -504,7 +527,7 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
           className="col-span-2"
         >
           <SliderWithInput
-            value={form.watch("spec.resources.cpu")}
+            value={form.watch("spec.resources.cpu") || 0}
             onChange={(value) => form.setValue("spec.resources.cpu", value)}
             min={0}
             max={maxAvailable.cpu.available}
@@ -530,7 +553,7 @@ export const useEndpointForm = ({ action }: { action: "create" | "edit" }) => {
           className="col-span-2"
         >
           <SliderWithInput
-            value={form.watch("spec.resources.memory")}
+            value={form.watch("spec.resources.memory") || 0}
             onChange={(value) => form.setValue("spec.resources.memory", value)}
             min={0}
             max={maxAvailable.memory.available}
