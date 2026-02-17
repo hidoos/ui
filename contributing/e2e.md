@@ -1,9 +1,5 @@
 # E2E Testing Guide
 
-## Overview
-
-E2E tests use [Playwright](https://playwright.dev/) and follow a layered abstraction built around `ResourcePage`, which composes `TableHelper` and `FormHelper`. Adding a CRUD test for a new resource typically requires two changes: register a fixture and write a spec.
-
 ## Running Tests
 
 ```bash
@@ -29,147 +25,188 @@ e2e/
 ├── fixtures/
 │   └── base.ts                # Playwright fixtures (register ResourcePage instances)
 ├── helpers/
-│   ├── resource-page.ts       # Page object: navigation (goToList, goToCreate, etc.)
-│   ├── table-helper.ts        # Table operations: waitForLoaded, editRow, deleteRow, etc.
-│   └── form-helper.ts         # Form operations: fillInput, selectOption, submit, etc.
+│   ├── resource-page.ts       # Page object: navigation, show page actions
+│   ├── table-helper.ts        # Table operations: CRUD, sort, column toggle, etc.
+│   ├── form-helper.ts         # Form operations: fillInput, selectOption, submit, etc.
+│   └── yaml-import.ts         # YamlImportHelper for seeding test data via API
 └── tests/
     └── *.spec.ts              # Test specs
 ```
 
-## Adding a CRUD Test for a New Resource
+## Test Organization
 
-### Step 1: Register a fixture in `e2e/fixtures/base.ts`
-
-```ts
-import { test as base } from "@playwright/test";
-import { ResourcePage } from "../helpers/resource-page";
-
-type ResourceFixtures = {
-  roles: ResourcePage;
-  clusters: ResourcePage; // <-- add your resource
-};
-
-export const test = base.extend<ResourceFixtures>({
-  page: async ({ page }, use) => {
-    page.on("response", async (res) => {
-      if (res.status() >= 400) {
-        const body = await res.text().catch(() => "");
-        console.log(`[API ${res.status()}] ${res.url()}\n${body}`);
-      }
-    });
-    await use(page);
-  },
-  roles: async ({ page }, use) => {
-    await use(new ResourcePage(page, { routeName: "roles" }));
-  },
-  // Add your resource fixture:
-  clusters: async ({ page }, use) => {
-    await use(
-      new ResourcePage(page, {
-        routeName: "clusters",
-        workspaced: true,        // set true if the route is under a workspace
-        workspace: "default",    // defaults to "default"
-      }),
-    );
-  },
-});
-
-export { expect } from "@playwright/test";
-```
-
-- `routeName` — the URL segment (e.g. `"clusters"` → `/#/default/clusters`)
-- `workspaced: true` — prepends `/{workspace}/` to all URLs
-
-### Step 2: Write the spec in `e2e/tests/<resource>.spec.ts`
-
-Use a single `test()` with `test.step()` to keep CRUD steps sequential without cross-test dependencies:
+Each `test()` is tagged with one or more TestRail case IDs. Group tests by section using `test.describe()`:
 
 ```ts
 import { test, expect } from "../fixtures/base";
 
-test("clusters CRUD", async ({ clusters }) => {
-  const uniqueName = `test-cluster-${Date.now()}`;
-
-  await test.step("list", async () => {
-    await clusters.goToList();
-    await clusters.table.waitForLoaded();
-    // Assert a known row exists
-    await clusters.table.expectRowWithText("some-existing-cluster");
-  });
-
-  await test.step("create", async () => {
-    await clusters.goToCreate();
-    await clusters.form.fillInput("metadata.name", uniqueName);
-    await clusters.form.selectOption("spec.type", "Some Option");
-    await clusters.form.submit();
-
-    await clusters.goToList();
-    await clusters.table.expectRowWithText(uniqueName);
-  });
-
-  await test.step("edit", async () => {
-    await clusters.goToList();
-    await clusters.table.editRow(uniqueName);
-
-    await expect(
-      clusters.page.locator('[data-testid="form"]'),
-    ).toBeVisible();
-
-    // Make changes...
-    await clusters.form.submit();
-  });
-
-  await test.step("delete", async () => {
-    await clusters.goToList();
-    await clusters.table.deleteRow(uniqueName);
-    await clusters.table.expectNoRowWithText(uniqueName);
+test.describe("roles list", () => {
+  test("list page shows expected columns", {
+    tag: "@C2611652",
+  }, async ({ roles }) => {
+    await roles.goToList();
+    await roles.table.waitForLoaded();
+    const headers = roles.table.root.locator("thead th");
+    await expect(headers.filter({ hasText: /name/i })).toBeVisible();
   });
 });
 ```
 
-## Helper API Reference
+- **Tag format**: `tag: "@C{case_id}"`
+- **Multiple tags**: `tag: ["@C2611697", "@C2611664"]`
+- **Describe groups**: list / detail / create / edit / delete
+
+### Test data isolation
+
+Each test that creates data must clean up after itself. Use `{ noWait: true }` for cleanup to avoid waiting for the delete to complete:
+
+```ts
+test("admin user can create a role with permissions", {
+  tag: "@C2611697",
+}, async ({ roles }) => {
+  const uniqueName = `test-role-${Date.now()}`;
+
+  await createRole(roles, uniqueName, ["Workspaces:Read"]);
+  await roles.goToList();
+  await roles.table.expectRowWithText(uniqueName);
+
+  // Cleanup — noWait since we don't need to verify deletion
+  await roles.table.deleteRow(uniqueName, { noWait: true });
+});
+```
+
+For tests that actually verify delete behavior, omit `noWait` to wait for row removal:
+
+```ts
+test("can delete role from list", {
+  tag: "@C2611721",
+}, async ({ roles }) => {
+  const uniqueName = `test-role-${Date.now()}`;
+  await createRole(roles, uniqueName, ["Workspaces:Read"]);
+  await roles.goToList();
+
+  await roles.table.deleteRow(uniqueName);
+  await roles.table.expectNoRowWithText(uniqueName);
+});
+```
+
+Use `` `test-xxx-${Date.now()}` `` for unique names.
+
+## Adding Tests for a New Resource
+
+### Step 1: Register a fixture (`e2e/fixtures/base.ts`)
+
+```ts
+clusters: async ({ page }, use) => {
+  await use(
+    new ResourcePage(page, {
+      routeName: "clusters",
+      workspaced: true,        // set true if the route is under a workspace
+      workspace: "default",    // defaults to "default"
+    }),
+  );
+},
+```
+
+### Step 2: Write the spec (`e2e/tests/<resource>.spec.ts`)
+
+See [Test Organization](#test-organization) above.
+
+## Helper API
 
 ### ResourcePage
 
 | Method | Description |
 |---|---|
-| `goToList()` | Navigate to the list page, wait for table loaded |
-| `goToCreate()` | Navigate to the create page, wait for form visible |
-| `goToEdit(id)` | Navigate to the edit page, wait for form visible |
-| `goToShow(id)` | Navigate to the show page, wait for `[data-testid="show-page"]` |
-| `clickCreate()` | Click the "Create" button on the list page |
+| `goToList()` | Navigate to list page, wait for table loaded |
+| `goToCreate()` | Navigate to create page, wait for form visible |
+| `goToEdit(id)` | Navigate to edit page, wait for form visible |
+| `goToShow(id)` | Navigate to show page, wait for `show-page` visible |
+| `clickCreate()` | Click the Create button on the list page |
+| `showPageEdit()` | Show page → open actions menu → click Edit |
+| `showPageDelete(name)` | Show page → open actions menu → click Delete → confirm → wait for row removal |
 
-### FormHelper (accessed via `resource.form`)
+### TableHelper (`resource.table`)
+
+| Method | Description |
+|---|---|
+| `waitForLoaded()` | Wait for table data to finish loading |
+| `rows()` | Locator for all data rows |
+| `rowWithText(text)` | Locator for a row containing the text |
+| `expectRowWithText(text)` | Assert a row with the text exists |
+| `expectNoRowWithText(text, options?)` | Assert no row with the text exists |
+| `clickRowLink(text)` | Click the first link in a row |
+| `editRow(text)` | Row actions → Edit |
+| `deleteRow(text, options?)` | Row actions → Delete → confirm → wait for row removal. Pass `{ noWait: true }` to skip waiting (for cleanup-only scenarios) |
+| `hasRowActions(text)` | Whether the row has an actions button (returns boolean) |
+| `headerCell(text)` | Locator for a column header (string or RegExp) |
+| `sort(columnText)` | Click sort trigger, verify sorting is active |
+| `toggleColumn(columnName)` | Toggle column visibility via Columns dropdown |
+
+### FormHelper (`resource.form`)
 
 | Method | Description |
 |---|---|
 | `field(name)` | Locator for `[data-testid="field-{name}"]` |
-| `fillInput(name, value)` | Clear and fill a text input |
-| `fillTextarea(name, value)` | Clear and fill a textarea |
-| `selectOption(name, optionText)` | Open a select/combobox and pick an option |
+| `fillInput(name, value)` | Clear and type into a text input |
+| `fillTextarea(name, value)` | Clear and type into a textarea |
+| `selectOption(name, optionText)` | Open a Radix Select and pick an option |
+| `selectComboboxOption(name, optionText)` | Open a cmdk Combobox and pick an option (popover-safe) |
 | `toggleCheckbox(name)` | Toggle a checkbox |
-| `submit()` | Click `[data-testid="form-submit"]` |
-| `cancel()` | Click `[data-testid="form-cancel"]` |
+| `submit()` | Click the submit button |
+| `cancel()` | Click the cancel button |
 
-The `name` parameter corresponds to the `data-testid="field-{name}"` attribute, which matches the react-hook-form field path (e.g. `"metadata.name"`, `"spec.type"`).
+The `name` parameter matches the react-hook-form field path (e.g. `"metadata.name"`, `"spec.type"`).
 
-### TableHelper (accessed via `resource.table`)
+## `data-testid` Reference
 
-| Method | Description |
+| Attribute | Location |
 |---|---|
-| `waitForLoaded()` | Wait for table rows to render (loading spinner gone) |
-| `expectRowWithText(text)` | Assert a row containing the text is visible |
-| `expectNoRowWithText(text)` | Assert no row containing the text is visible |
-| `clickRowLink(text)` | Click the first link in a row (typically the name column) |
-| `editRow(text)` | Open row actions → click Edit |
-| `deleteRow(text)` | Open row actions → click Delete → confirm dialog → wait for row removal (20s timeout for soft-delete) |
+| `form` | Form wrapper |
+| `field-{name}` | Form field container |
+| `form-submit` | Submit button |
+| `form-cancel` | Cancel button |
+| `table` | Table wrapper |
+| `table-body` | Table body |
+| `table-loading` | Loading row |
+| `table-empty` | Empty state row |
+| `row-actions-trigger` | Row action menu button |
+| `show-page` | Show page container |
+| `show-actions-trigger` | Show page action menu button |
+| `sort-trigger` | Column header sort button (also exposes `data-sort-direction`) |
 
-## Key Conventions
+When adding new testable UI elements, prefer `data-testid` over CSS class selectors.
 
-- **`data-testid` attributes** — The helpers rely on these: `form`, `field-{name}`, `form-submit`, `form-cancel`, `table`, `table-body`, `table-loading`, `row-actions-trigger`, `show-page`. Make sure the UI components have them.
-- **`Date.now()` in names** — Use unique names like `` `test-xyz-${Date.now()}` `` to avoid collisions between runs.
-- **Single test with steps** — Use `test.step()` instead of separate `test()` calls for sequential CRUD operations. A failed step stops execution immediately; the report shows which step failed.
-- **Soft-delete** — All deletes are soft-deletes. `deleteRow()` waits up to 20s for the row to disappear via backend polling.
-- **Row action menu retry** — `editRow()` and `deleteRow()` automatically retry if the dropdown menu gets detached due to table re-renders.
-- **No manual timeouts** — All timeouts are controlled by `actionTimeout` in `playwright.config.ts` (10s). The only exception is `deleteRow()` which uses 20s for soft-delete polling.
-- **API error logging** — The `page` fixture in `base.ts` logs all 4xx/5xx responses with their body to stdout for debugging.
+## Locator Strategy
+
+- **Structural elements** → `data-testid` (pages, forms, triggers)
+- **Semantic elements** → `getByRole()` (links, menu items, dialogs)
+- **Text matching** → `getByText("admin", { exact: true })` to avoid partial match ambiguity
+
+## Notes
+
+- **Delete cleanup optimization**: `deleteRow()` waits up to 30s for the row to disappear by default. For cleanup-only scenarios (not testing delete), use `deleteRow(name, { noWait: true })` to skip waiting — this saves 10-20s per call. Only tests that verify delete behavior should wait for row removal.
+- **Cancel navigation**: The cancel button uses `history.back()`. Always navigate to the list page before clicking Create, so that cancel returns to a valid page.
+- **API error logging**: The `page` fixture in `base.ts` logs all 4xx/5xx responses to stdout.
+
+## Pitfalls
+
+### `selectOption` vs `selectComboboxOption`
+
+Use **`selectOption`** for Radix `<Select>` fields — options render inside a simple dropdown.
+
+Use **`selectComboboxOption`** for cmdk `<Combobox>` fields — the component uses a Radix Popover + cmdk Command internally. Radix Popover keeps closed popover content mounted in the DOM (with `data-state="closed"`). If two comboboxes on the same form share option names (e.g., user "admin" and role "admin"), `selectOption` will hit a strict mode violation because `getByRole("option")` matches options from both popovers. `selectComboboxOption` scopes the click to `[data-state="open"][role="dialog"]` to target only the active popover.
+
+### Radix Select disabled check
+
+Radix Select renders both a `<button role="combobox">` trigger and a hidden `<select>` element. Using `getByRole("combobox")` may match both and cause a strict mode violation. To check if a Select is disabled, use the CSS selector instead:
+
+```ts
+await expect(
+  scopeField.locator('button[role="combobox"]'),
+).toBeDisabled();
+```
+
+### Test data naming
+
+Avoid keywords like "create", "edit", "delete" in test data names (e.g., `test-wp-create-...`). These can collide with UI button text in selectors like `getByRole("link", { name: /create/i })`. Use neutral prefixes: `test-wp-new-`, `test-wp-del-`, etc.
