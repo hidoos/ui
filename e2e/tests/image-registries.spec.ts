@@ -1,3 +1,4 @@
+import { config } from "../config";
 import { expect, test } from "../fixtures/base";
 import { ApiHelper } from "../helpers/api-helper";
 import {
@@ -303,7 +304,7 @@ test.describe("image registries", () => {
 
         // Repo URL (format: {spec.url}/{spec.repository})
         await expect(
-          showPage.getByText("https://index.docker.io/v1"),
+          showPage.getByText(config.imageRegistry.url),
         ).toBeVisible();
       },
     );
@@ -322,7 +323,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", "INVALID_NAME");
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         // Server-side validation rejects invalid name format
@@ -350,7 +351,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", longName);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         const responsePromise = imageRegistries.page.waitForResponse(
@@ -375,7 +376,7 @@ test.describe("image registries", () => {
         // Leave name empty, fill other fields
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         await imageRegistries.form.submit();
@@ -398,7 +399,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", `  ${name}  `);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         const responsePromise = imageRegistries.page.waitForResponse(
@@ -425,7 +426,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", irNames.base);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.submit();
 
@@ -446,7 +447,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.fillInput(
           "spec.repository",
@@ -530,7 +531,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.fillInput(
           "spec.repository",
@@ -548,7 +549,7 @@ test.describe("image registries", () => {
         );
         await expect(showPage).toBeVisible();
         await expect(
-          showPage.getByText("https://index.docker.io/v1/library/nginx"),
+          showPage.getByText(`${config.imageRegistry.url}/library/nginx`),
         ).toBeVisible();
 
         // Cleanup
@@ -632,7 +633,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "  https://index.docker.io/v1  ",
+          `  ${config.imageRegistry.url}  `,
         );
         await imageRegistries.form.fillInput(
           "spec.repository",
@@ -663,7 +664,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         // Leave repository empty
         await imageRegistries.form.submit();
@@ -687,7 +688,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.fillInput(
           "spec.repository",
@@ -705,7 +706,7 @@ test.describe("image registries", () => {
         await expect(showPage).toBeVisible();
         await expect(showPage.getByText(name, { exact: true })).toBeVisible();
         await expect(
-          showPage.getByText("https://index.docker.io/v1/library/nginx"),
+          showPage.getByText(`${config.imageRegistry.url}/library/nginx`),
         ).toBeVisible();
 
         // Cleanup
@@ -723,7 +724,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.fillInput(
           "spec.repository",
@@ -855,7 +856,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         // Count POST requests to image_registries
@@ -906,7 +907,7 @@ test.describe("image registries", () => {
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
 
         // Accept browser dialog if warnWhenUnsavedChanges fires
@@ -945,7 +946,7 @@ test.describe("image registries", () => {
         const name = `test-ir-noperm-${Date.now()}`;
         await irPage.goToCreate();
         await irPage.form.fillInput("metadata.name", name);
-        await irPage.form.fillInput("spec.url", "https://index.docker.io/v1");
+        await irPage.form.fillInput("spec.url", config.imageRegistry.url);
         await irPage.form.submit();
 
         // Should show error (permission denied or 403)
@@ -980,7 +981,7 @@ test.describe("image registries", () => {
         const name = `test-ir-perm-${Date.now()}`;
         await irPage.goToCreate();
         await irPage.form.fillInput("metadata.name", name);
-        await irPage.form.fillInput("spec.url", "https://index.docker.io/v1");
+        await irPage.form.fillInput("spec.url", config.imageRegistry.url);
         await irPage.form.submit();
 
         // Redirects to list → row should exist
@@ -1018,7 +1019,7 @@ metadata:
   name: ${name}
   workspace: default
 spec:
-  url: https://index.docker.io/v1
+  url: ${config.imageRegistry.url}
   repository: library/nginx
   authconfig: {}`;
 
@@ -1491,7 +1492,7 @@ spec:
         await imageRegistries.form.fillInput("metadata.name", name);
         await imageRegistries.form.fillInput(
           "spec.url",
-          "https://index.docker.io/v1",
+          config.imageRegistry.url,
         );
         await imageRegistries.form.submit();
 
