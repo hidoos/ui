@@ -14,12 +14,9 @@ export const ThemedTitle: React.FC<ThemedTitleProps> = ({
 }) => {
   const { brandName, logoBase64, isLoading } = useOemConfig();
   const displayText = isLoading ? "..." : text || brandName;
+  const logoSrc = logoBase64 || "/logo.svg";
   const displayIcon = icon ?? (
-    <img
-      alt="logo"
-      src={logoBase64 || "/logo.png"}
-      className="w-[64px] h-[64px]"
-    />
+    <img alt="logo" src={logoSrc} className="w-[64px] h-[64px]" />
   );
 
   return (
