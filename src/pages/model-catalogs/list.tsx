@@ -1,8 +1,9 @@
-import { ModelTaskFilter } from "@/components/business/ModelTaskFilter";
-import { ListPage, Table } from "@/components/theme";
-import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
-import { useModelCatalogColumns } from "@/components/theme/table/columns/model-catalog-columns";
-import { defaultSorters } from "@/components/theme/table/sorter";
+import { ModelTaskFilter } from "@/domains/endpoint/components/ModelTaskFilter";
+import { ListPage } from "@/foundation/components/ListPage";
+import { Table } from "@/foundation/components/Table";
+import { defaultSorters } from "@/foundation/components/Table";
+import { useMetadataColumns } from "@/foundation/components/metadata-columns";
+import { useModelCatalogColumns } from "./columns";
 
 export const ModelCatalogsList = () => {
   const metadataColumns = useMetadataColumns();

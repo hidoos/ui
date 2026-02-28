@@ -1,8 +1,8 @@
-import FormCardGrid from "@/components/business/FormCardGrid";
-import PermissionsTreeField from "@/components/business/PermissionsTreeField";
-import { Field } from "@/components/theme";
 import { Input } from "@/components/ui/input";
-import type { Role } from "@/types";
+import PermissionsTreeField from "@/domains/role/components/PermissionsTreeField";
+import type { Role } from "@/domains/role/types";
+import FormCardGrid from "@/foundation/components/FormCardGrid";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
 import { useTranslation } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 
@@ -31,7 +31,7 @@ export const useRoleForm = ({ action }: { action: "create" | "edit" }) => {
     form,
     metadataFields: (
       <FormCardGrid title={translate("common.sections.basicInformation")}>
-        <Field
+        <FormFieldGroup
           {...form}
           name="metadata.name"
           label={translate("common.fields.name")}
@@ -40,14 +40,18 @@ export const useRoleForm = ({ action }: { action: "create" | "edit" }) => {
             placeholder={translate("roles.placeholders.roleName")}
             disabled={isEdit}
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     specFields: (
       <FormCardGrid title={translate("common.fields.permissions")}>
-        <Field {...form} name="spec.permissions" className="col-span-4">
+        <FormFieldGroup
+          {...form}
+          name="spec.permissions"
+          className="col-span-4"
+        >
           <PermissionsTreeField />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
   };

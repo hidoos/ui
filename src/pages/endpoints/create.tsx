@@ -1,4 +1,4 @@
-import { Form } from "@/components/theme";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
 import { useEndpointForm } from "./use-endpoint-form";
 
 export const EndpointsCreate = () => {
@@ -13,11 +13,11 @@ export const EndpointsCreate = () => {
   });
 
   return (
-    <Form {...form}>
+    <ResourceForm {...form}>
       {metadataFields}
       {templateFields}
       {resourceFields}
       {customizeFields}
-    </Form>
+    </ResourceForm>
   );
 };

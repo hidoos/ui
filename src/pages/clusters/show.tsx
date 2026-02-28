@@ -1,11 +1,3 @@
-import ClusterStatus from "@/components/business/ClusterStatus";
-import ClusterType from "@/components/business/ClusterType";
-import GrafanaDashboard from "@/components/business/GrafanaDashboard";
-import MetadataCard from "@/components/business/MetadataCard";
-import { ShowButton, ShowPage, Table } from "@/components/theme";
-import Loader from "@/components/theme/components/loader";
-import { useEndpointColumns } from "@/components/theme/table/columns/endpoint-columns";
-import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -24,21 +16,35 @@ import {
   Table as UITable,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClusterStatus from "@/domains/cluster/components/ClusterStatus";
+import ClusterType from "@/domains/cluster/components/ClusterType";
 import {
   type ClusterMonitorPanelType,
   useClusterMonitorPanels,
-} from "@/hooks/use-monitor-panels";
-import { useSystemApi } from "@/hooks/use-system-api";
-import { getRayDashboardProxy } from "@/lib/api";
+} from "@/domains/cluster/hooks/use-cluster-monitor-panels";
+import { getRayDashboardProxy } from "@/domains/cluster/lib/get-ray-dashboard-proxy";
+import type { Cluster, ModelCache } from "@/domains/cluster/types";
+import EndpointEngine from "@/domains/endpoint/components/EndpointEngine";
+import EndpointModel from "@/domains/endpoint/components/EndpointModel";
+import EndpointStatus from "@/domains/endpoint/components/EndpointStatus";
+import type { Endpoint } from "@/domains/endpoint/types";
+import GrafanaDashboard from "@/foundation/components/GrafanaDashboard";
+import { Loader } from "@/foundation/components/Loader";
+import MetadataCard from "@/foundation/components/MetadataCard";
+import { ShowButton } from "@/foundation/components/ShowButton";
+import { ShowPage } from "@/foundation/components/ShowPage";
+import { Table } from "@/foundation/components/Table";
+import { useMetadataColumns } from "@/foundation/components/metadata-columns";
+import { useSystemApi } from "@/foundation/hooks/use-system-api";
 import {
   getClusterRayDashboardProps,
   getClusterRouterDashboardProps,
   getGpuDcgmDashboardProps,
   getNodeExporterDashboardProps,
-} from "@/lib/grafana-dashboard-configs";
-import { useTranslation as useI18nTranslation } from "@/lib/i18n";
-import { formatToDecimal } from "@/lib/unit";
-import type { Cluster, ModelCache } from "@/types";
+} from "@/foundation/lib/grafana-dashboard-configs";
+import { useTranslation as useI18nTranslation } from "@/foundation/lib/i18n";
+import { formatToDecimal } from "@/foundation/lib/unit";
+import type { BaseStatus } from "@/foundation/types/basic-types";
 import { useShow, useTranslation } from "@refinedev/core";
 
 // Utility function to calculate resource usage
@@ -149,7 +155,10 @@ const getAccessModeLabel = (
 
 // Component for displaying node resources table
 interface NodeResourcesTableProps {
-  nodeResources: Record<string, import("@/types").ResourceStatus>;
+  nodeResources: Record<
+    string,
+    import("@/domains/cluster/types").ResourceStatus
+  >;
   acceleratorTypes: string[];
   t: (key: string, options?: { defaultValue?: string }) => string;
 }
@@ -269,7 +278,6 @@ export const ClustersShow = () => {
   const { grafanaUrl } = useSystemApi();
 
   const metadataColumns = useMetadataColumns({ resource: "endpoints" });
-  const endpointColumns = useEndpointColumns();
 
   const {
     panels: monitorPanels,
@@ -608,9 +616,35 @@ export const ClustersShow = () => {
                 }}
               >
                 {metadataColumns.name}
-                {endpointColumns.status}
-                {endpointColumns.model}
-                {endpointColumns.engine}
+                <Table.Column
+                  header={t("common.fields.status")}
+                  accessorKey="status"
+                  id="status"
+                  enableHiding
+                  cell={({ getValue }) => (
+                    <EndpointStatus
+                      {...(getValue() as unknown as BaseStatus)}
+                    />
+                  )}
+                />
+                <Table.Column
+                  header={t("common.fields.model")}
+                  accessorKey="status"
+                  id="model"
+                  enableHiding
+                  cell={({ row }) => (
+                    <EndpointModel model={row.original.spec.model} />
+                  )}
+                />
+                <Table.Column
+                  header={t("common.fields.engine")}
+                  accessorKey="spec.engine.engine"
+                  id="engine"
+                  enableHiding
+                  cell={({ row }) => (
+                    <EndpointEngine {...(row.original as Endpoint)} />
+                  )}
+                />
                 {metadataColumns.update_timestamp}
                 {metadataColumns.creation_timestamp}
               </Table>

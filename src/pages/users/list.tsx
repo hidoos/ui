@@ -1,7 +1,8 @@
-import { ListPage, Table } from "@/components/theme";
-import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
-import { useUserColumns } from "@/components/theme/table/columns/user-columns";
-import { defaultSorters } from "@/components/theme/table/sorter";
+import { ListPage } from "@/foundation/components/ListPage";
+import { Table } from "@/foundation/components/Table";
+import { defaultSorters } from "@/foundation/components/Table";
+import { useMetadataColumns } from "@/foundation/components/metadata-columns";
+import { useUserColumns } from "./columns";
 
 export const UsersList = () => {
   const metadataColumns = useMetadataColumns();

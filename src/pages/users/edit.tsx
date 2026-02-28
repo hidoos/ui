@@ -1,5 +1,5 @@
-import { Form } from "@/components/theme";
-import { useTranslation } from "@/lib/i18n";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { useUserForm } from "./use-user-form";
 
 export const UsersEdit = () => {
@@ -8,9 +8,9 @@ export const UsersEdit = () => {
     action: "edit",
   });
   return (
-    <Form {...form} title={t("user_profiles.edit")}>
+    <ResourceForm {...form} title={t("user_profiles.edit")}>
       {metadataFields}
       {specFields}
-    </Form>
+    </ResourceForm>
   );
 };

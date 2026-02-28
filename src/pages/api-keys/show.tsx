@@ -1,6 +1,3 @@
-import MetadataCard from "@/components/business/MetadataCard";
-import { ShowPage } from "@/components/theme";
-import { ShowButton } from "@/components/theme/buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,6 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import MetadataCard from "@/foundation/components/MetadataCard";
+import { ShowButton } from "@/foundation/components/ShowButton";
+import { ShowPage } from "@/foundation/components/ShowPage";
 import { useCustomMutation, useShow } from "@refinedev/core";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

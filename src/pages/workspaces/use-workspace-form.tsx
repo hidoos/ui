@@ -1,7 +1,7 @@
-import FormCardGrid from "@/components/business/FormCardGrid";
-import { Field } from "@/components/theme";
 import { Input } from "@/components/ui/input";
-import type { Workspace } from "@/types";
+import type { Workspace } from "@/domains/workspace/types";
+import FormCardGrid from "@/foundation/components/FormCardGrid";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
 import { useTranslation } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 
@@ -26,7 +26,7 @@ export const useWorkspaceForm = ({ action }: { action: "create" | "edit" }) => {
     form,
     metadataFields: (
       <FormCardGrid title={translate("common.sections.basicInformation")}>
-        <Field
+        <FormFieldGroup
           {...form}
           name="metadata.name"
           label={translate("common.fields.name")}
@@ -35,7 +35,7 @@ export const useWorkspaceForm = ({ action }: { action: "create" | "edit" }) => {
             placeholder={translate("workspaces.placeholders.workspaceName")}
             disabled={isEdit}
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
   };

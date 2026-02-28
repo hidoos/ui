@@ -1,7 +1,7 @@
-import { Form } from "@/components/theme";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useOemConfig } from "@/hooks/use-oem-config";
-import { useTranslation } from "@/lib/i18n";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
+import { useOemConfig } from "@/foundation/hooks/use-oem-config";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { useOemConfigForm } from "@/pages/oem-config/use-oem-config-form";
 import { Loader2 } from "lucide-react";
 
@@ -23,14 +23,14 @@ export function OemConfigShow() {
         <p className="text-muted-foreground">{t("oem_configs.description")}</p>
       </div>
 
-      <Form {...form} hideCancel>
+      <ResourceForm {...form} hideCancel>
         <Card>
           <CardHeader>
             <CardTitle>{t("oem_configs.fields.brandSettings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">{formFields}</CardContent>
         </Card>
-      </Form>
+      </ResourceForm>
     </div>
   );
 }

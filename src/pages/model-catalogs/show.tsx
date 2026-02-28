@@ -1,16 +1,17 @@
-import DeploymentConfigCard from "@/components/business/DeploymentConfigCard";
-import EndpointEngine from "@/components/business/EndpointEngine";
-import EndpointModel from "@/components/business/EndpointModel";
-import EngineVariablesCard from "@/components/business/EngineVariablesCard";
-import MetadataCard from "@/components/business/MetadataCard";
-import ModelCatalogStatus from "@/components/business/ModelCatalogStatus";
-import ModelTask from "@/components/business/ModelTask";
-import ResourcesCard from "@/components/business/ResourcesCard";
-import { ShowPage } from "@/components/theme";
-import Loader from "@/components/theme/components/loader";
 import { Card, CardContent } from "@/components/ui/card";
-import { useTranslation } from "@/lib/i18n";
-import type { Engine, ModelCatalog } from "@/types";
+import DeploymentConfigCard from "@/domains/endpoint/components/DeploymentConfigCard";
+import EndpointEngine from "@/domains/endpoint/components/EndpointEngine";
+import EndpointModel from "@/domains/endpoint/components/EndpointModel";
+import ModelTask from "@/domains/endpoint/components/ModelTask";
+import ResourcesCard from "@/domains/endpoint/components/ResourcesCard";
+import EngineVariablesCard from "@/domains/engine/components/EngineVariablesCard";
+import type { Engine } from "@/domains/engine/types";
+import ModelCatalogStatus from "@/domains/model-catalog/components/ModelCatalogStatus";
+import type { ModelCatalog } from "@/domains/model-catalog/types";
+import { Loader } from "@/foundation/components/Loader";
+import MetadataCard from "@/foundation/components/MetadataCard";
+import { ShowPage } from "@/foundation/components/ShowPage";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { useOne, useShow } from "@refinedev/core";
 
 export const ModelCatalogsShow = () => {

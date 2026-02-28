@@ -1,7 +1,3 @@
-import { Combobox, ListPage, Table } from "@/components/theme";
-import { useApiKeyColumns } from "@/components/theme/table/columns/api-key-columns";
-import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
-import { defaultSorters } from "@/components/theme/table/sorter";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,15 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { ApiKey } from "@/types";
+import type { ApiKey } from "@/domains/api-key/types";
+import { FormCombobox } from "@/foundation/components/FormCombobox";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
+import { ListPage } from "@/foundation/components/ListPage";
+import { Table } from "@/foundation/components/Table";
+import { defaultSorters } from "@/foundation/components/Table";
+import { useMetadataColumns } from "@/foundation/components/metadata-columns";
 import { useCustomMutation, useInvalidate, useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 import type { UseTableReturnType } from "@refinedev/react-table";
@@ -29,6 +25,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { useApiKeyColumns } from "./columns";
 
 const CreateApiKeyForm = ({ onClose }: { onClose?: () => void }) => {
   const { t } = useTranslation();
@@ -136,40 +133,23 @@ const CreateApiKeyForm = ({ onClose }: { onClose?: () => void }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-        <FormField
+        <FormFieldGroup
+          {...form}
           name="workspace"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel>{t("common.fields.workspace")}</FormLabel>
-                <FormControl>
-                  <Combobox
-                    placeholder={t("api_keys.placeholders.selectWorkspace")}
-                    disabled={workspaces.query.isLoading}
-                    options={(workspaces.query.data?.data || []).map((e) => ({
-                      label: e.metadata.name,
-                      value: e.metadata.name,
-                    }))}
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            );
-          }}
-        />
-        <FormField
-          name="name"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel>{t("common.fields.name")}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-              </FormItem>
-            );
-          }}
-        />
+          label={t("common.fields.workspace")}
+        >
+          <FormCombobox
+            placeholder={t("api_keys.placeholders.selectWorkspace")}
+            disabled={workspaces.query.isLoading}
+            options={(workspaces.query.data?.data || []).map((e) => ({
+              label: e.metadata.name,
+              value: e.metadata.name,
+            }))}
+          />
+        </FormFieldGroup>
+        <FormFieldGroup {...form} name="name" label={t("common.fields.name")}>
+          <Input />
+        </FormFieldGroup>
         <DialogFooter>
           <Button type="button" variant="secondary" onClick={onClose}>
             {t("buttons.cancel")}

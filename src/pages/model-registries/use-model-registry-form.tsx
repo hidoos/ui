@@ -1,15 +1,16 @@
-import FormCardGrid from "@/components/business/FormCardGrid";
-import WorkspaceField from "@/components/business/WorkspaceField";
-import { Field, Select } from "@/components/theme";
-import { useWorkspace } from "@/components/theme/hooks";
 import { Input } from "@/components/ui/input";
-import { PRIVATE_MODEL_REGISTRY_TYPE } from "@/lib/constant";
-import { useTranslation } from "@/lib/i18n";
-import { isNfsProtocol } from "@/lib/validate";
-import type { ModelRegistry } from "@/types";
+import type { ModelRegistry } from "@/domains/model-registry/types";
+import FormCardGrid from "@/foundation/components/FormCardGrid";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
+import { FormSelect } from "@/foundation/components/FormSelect";
+import WorkspaceField from "@/foundation/components/WorkspaceField";
+import { useWorkspace } from "@/foundation/hooks";
+import { PRIVATE_MODEL_REGISTRY_TYPE } from "@/foundation/lib/constant";
+import { useTranslation } from "@/foundation/lib/i18n";
+import { isNfsProtocol } from "@/foundation/lib/validate";
 import { useForm } from "@refinedev/react-hook-form";
 
-export const transformValues = (values: ModelRegistry, isEdit = false) => {
+const transformValues = (values: ModelRegistry, isEdit = false) => {
   const transformedValues = { ...values };
 
   // In edit mode, remove empty sensitive fields to avoid overwriting backend config
@@ -63,25 +64,33 @@ export const useModelRegistryForm = ({
     form,
     metadataFields: (
       <FormCardGrid title={t("common.sections.basicInformation")}>
-        <Field {...form} name="metadata.name" label={t("common.fields.name")}>
+        <FormFieldGroup
+          {...form}
+          name="metadata.name"
+          label={t("common.fields.name")}
+        >
           <Input
             placeholder={t("model_registries.placeholders.registryName")}
             disabled={isEdit}
           />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           name="metadata.workspace"
           label={t("common.fields.workspace")}
         >
           <WorkspaceField disabled={isEdit} />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     specFields: (
       <FormCardGrid title={t("model_registries.fields.modelRegistry")}>
-        <Field {...form} name="spec.type" label={t("common.fields.type")}>
-          <Select
+        <FormFieldGroup
+          {...form}
+          name="spec.type"
+          label={t("common.fields.type")}
+        >
+          <FormSelect
             placeholder={t("model_registries.placeholders.selectType")}
             options={[
               {
@@ -94,8 +103,8 @@ export const useModelRegistryForm = ({
               },
             ]}
           />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           label={t("model_registries.fields.url")}
           {...form.register("spec.url", {
@@ -123,8 +132,8 @@ export const useModelRegistryForm = ({
                 : t("model_registries.placeholders.fileSystemUrl")
             }
           />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           name="spec.credentials"
           label={t("model_registries.fields.credentials")}
@@ -139,7 +148,7 @@ export const useModelRegistryForm = ({
             placeholder={t("model_registries.placeholders.credentials")}
             type="password"
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
   };

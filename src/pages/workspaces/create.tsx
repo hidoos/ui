@@ -1,8 +1,8 @@
-import { Form } from "@/components/theme";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
 import { useWorkspaceForm } from "./use-workspace-form";
 
 export const WorkspacesCreate = () => {
   const { form, metadataFields } = useWorkspaceForm({ action: "create" });
 
-  return <Form {...form}>{metadataFields}</Form>;
+  return <ResourceForm {...form}>{metadataFields}</ResourceForm>;
 };

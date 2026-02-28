@@ -1,4 +1,4 @@
-import { Form } from "@/components/theme";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
 import { useRoleForm } from "./use-role-form";
 
 export const RolesEdit = () => {
@@ -7,9 +7,9 @@ export const RolesEdit = () => {
   });
 
   return (
-    <Form {...form}>
+    <ResourceForm {...form}>
       {metadataFields}
       {specFields}
-    </Form>
+    </ResourceForm>
   );
 };

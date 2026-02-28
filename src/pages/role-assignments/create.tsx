@@ -1,4 +1,4 @@
-import { Form } from "@/components/theme";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
 import { useRoleAssignmentForm } from "./use-role-assignment-form";
 
 export const RoleAssignmentsCreate = () => {
@@ -7,9 +7,9 @@ export const RoleAssignmentsCreate = () => {
   });
 
   return (
-    <Form {...form}>
+    <ResourceForm {...form}>
       {metadataFields}
       {specFields}
-    </Form>
+    </ResourceForm>
   );
 };

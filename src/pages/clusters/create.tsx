@@ -1,5 +1,5 @@
-import { Form } from "@/components/theme";
-import { useTranslation } from "@/lib/i18n";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { useClusterForm } from "./use-cluster-form";
 
 export const ClustersCreate = () => {
@@ -15,7 +15,7 @@ export const ClustersCreate = () => {
     authFields,
   } = useClusterForm({ action: "create" });
   return (
-    <Form {...form} title={t("clusters.create")}>
+    <ResourceForm {...form} title={t("clusters.create")}>
       {metadataFields}
       {imageRegistryFields}
       {typeFields}
@@ -23,6 +23,6 @@ export const ClustersCreate = () => {
       {routerFields}
       {authFields}
       {modelCacheFields}
-    </Form>
+    </ResourceForm>
   );
 };

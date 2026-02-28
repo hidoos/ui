@@ -1,18 +1,3 @@
-import ChatPlayground from "@/components/business/ChatPlayground";
-import DeploymentConfigCard from "@/components/business/DeploymentConfigCard";
-import EmbeddingPlayground from "@/components/business/EmbeddingPlayground";
-import EndpointEngine from "@/components/business/EndpointEngine";
-import EndpointModel from "@/components/business/EndpointModel";
-import { EndpointPauseAction } from "@/components/business/EndpointPauseAction";
-import EndpointStatus from "@/components/business/EndpointStatus";
-import EngineVariablesCard from "@/components/business/EngineVariablesCard";
-import GrafanaDashboard from "@/components/business/GrafanaDashboard";
-import MetadataCard from "@/components/business/MetadataCard";
-import ModelTask from "@/components/business/ModelTask";
-import RerankPlayground from "@/components/business/RerankPlayground";
-import ResourcesCard from "@/components/business/ResourcesCard";
-import { ShowButton, ShowPage } from "@/components/theme";
-import Loader from "@/components/theme/components/loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,18 +8,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRayDashboardProxy } from "@/domains/cluster/lib/get-ray-dashboard-proxy";
+import ChatPlayground from "@/domains/endpoint/components/ChatPlayground";
+import DeploymentConfigCard from "@/domains/endpoint/components/DeploymentConfigCard";
+import EmbeddingPlayground from "@/domains/endpoint/components/EmbeddingPlayground";
+import EndpointEngine from "@/domains/endpoint/components/EndpointEngine";
+import EndpointModel from "@/domains/endpoint/components/EndpointModel";
+import { EndpointPauseAction } from "@/domains/endpoint/components/EndpointPauseAction";
+import EndpointStatus from "@/domains/endpoint/components/EndpointStatus";
+import ModelTask from "@/domains/endpoint/components/ModelTask";
+import RerankPlayground from "@/domains/endpoint/components/RerankPlayground";
+import ResourcesCard from "@/domains/endpoint/components/ResourcesCard";
 import {
-  type MonitorPanelType,
-  useMonitorPanels,
-} from "@/hooks/use-monitor-panels";
-import { useSystemApi } from "@/hooks/use-system-api";
-import { getRayDashboardProxy } from "@/lib/api";
+  type EndpointMonitorPanelType,
+  useEndpointMonitorPanels,
+} from "@/domains/endpoint/hooks/use-endpoint-monitor-panels";
+import type { Endpoint } from "@/domains/endpoint/types";
+import EngineVariablesCard from "@/domains/engine/components/EngineVariablesCard";
+import type { Engine } from "@/domains/engine/types";
+import GrafanaDashboard from "@/foundation/components/GrafanaDashboard";
+import { Loader } from "@/foundation/components/Loader";
+import MetadataCard from "@/foundation/components/MetadataCard";
+import { ShowButton } from "@/foundation/components/ShowButton";
+import { ShowPage } from "@/foundation/components/ShowPage";
+import { useSystemApi } from "@/foundation/hooks/use-system-api";
 import {
   getEndpointDashboardProps,
   getVllmDashboardProps,
-} from "@/lib/grafana-dashboard-configs";
-import { formatToDecimal } from "@/lib/unit";
-import type { Endpoint, Engine } from "@/types";
+} from "@/foundation/lib/grafana-dashboard-configs";
+import { formatToDecimal } from "@/foundation/lib/unit";
 import {
   type IResourceComponentsProps,
   useList,
@@ -46,7 +48,7 @@ import { useTranslation } from "react-i18next";
 
 // Lazy load EndpointLogTabs
 const EndpointLogTabs = lazy(() =>
-  import("@/components/business/EndpointLogTabs").then((module) => ({
+  import("@/domains/endpoint/components/EndpointLogTabs").then((module) => ({
     default: module.EndpointLogTabs,
   })),
 );
@@ -141,7 +143,7 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
     setSelectedPanel,
     showMonitorTab,
     showSelector,
-  } = useMonitorPanels({
+  } = useEndpointMonitorPanels({
     clusterType,
     engineType: record?.spec.engine.engine,
   });
@@ -291,7 +293,7 @@ export const EndpointsShow: React.FC<IResourceComponentsProps> = () => {
                   <div className="flex items-center justify-start">
                     <Select
                       value={selectedPanel || undefined}
-                      onValueChange={(value: MonitorPanelType) =>
+                      onValueChange={(value: EndpointMonitorPanelType) =>
                         setSelectedPanel(value)
                       }
                     >

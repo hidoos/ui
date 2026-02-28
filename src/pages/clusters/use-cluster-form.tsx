@@ -1,23 +1,26 @@
-import FormCardGrid from "@/components/business/FormCardGrid";
-import NodeIPsField from "@/components/business/NodeIPsField";
-import WorkspaceField from "@/components/business/WorkspaceField";
-import { Combobox, Field, Select } from "@/components/theme";
-import { useWorkspace } from "@/components/theme/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { isValidIPAddress, isValidPath } from "@/lib/validate";
-import type { Cluster, ImageRegistry } from "@/types";
+import NodeIPsField from "@/domains/cluster/components/NodeIPsField";
+import type { Cluster } from "@/domains/cluster/types";
+import type { ImageRegistry } from "@/domains/image-registry/types";
+import FormCardGrid from "@/foundation/components/FormCardGrid";
+import { FormCombobox } from "@/foundation/components/FormCombobox";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
+import { FormSelect } from "@/foundation/components/FormSelect";
+import WorkspaceField from "@/foundation/components/WorkspaceField";
+import { useWorkspace } from "@/foundation/hooks";
+import { cn } from "@/foundation/lib/utils";
+import { isValidIPAddress, isValidPath } from "@/foundation/lib/validate";
 import { useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-export const transformValues = (values: Cluster, isEdit = false) => {
+const transformValues = (values: Cluster, isEdit = false) => {
   const transformedValues = { ...values };
 
   const config = transformedValues.spec?.config;
@@ -198,29 +201,33 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
     form,
     metadataFields: (
       <FormCardGrid title={t("common.sections.basicInformation")}>
-        <Field {...form} name="metadata.name" label={t("common.fields.name")}>
+        <FormFieldGroup
+          {...form}
+          name="metadata.name"
+          label={t("common.fields.name")}
+        >
           <Input
             placeholder={t("clusters.placeholders.clusterName")}
             disabled={isEdit}
           />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           name="metadata.workspace"
           label={t("common.fields.workspace")}
         >
           <WorkspaceField disabled={isEdit} />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     imageRegistryFields: (
       <FormCardGrid>
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.image_registry"
           label={t("common.fields.imageRegistry")}
         >
-          <Combobox
+          <FormCombobox
             placeholder={t("clusters.placeholders.selectImageRegistry")}
             options={(imageRegistries.query.data?.data || []).map((item) => ({
               label: item.metadata.name,
@@ -228,13 +235,17 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
             }))}
             disabled={imageRegistries.query.isLoading || isEdit}
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     typeFields: (
       <FormCardGrid title={t("clusters.sections.clusterType")}>
-        <Field {...form} name="spec.type" label={t("common.fields.type")}>
-          <Select
+        <FormFieldGroup
+          {...form}
+          name="spec.type"
+          label={t("common.fields.type")}
+        >
+          <FormSelect
             options={[
               {
                 label: t("clusters.options.multipleStaticNodes"),
@@ -278,7 +289,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
             }}
             disabled={isEdit}
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     providerFields: (
@@ -294,7 +305,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
         )}
 
         {isKubernetes && (
-          <Field
+          <FormFieldGroup
             {...form}
             name="spec.config.kubernetes_config.kubeconfig"
             label={t("clusters.fields.kubeconfig")}
@@ -304,18 +315,18 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
             className="col-span-4"
           >
             <Textarea disabled={isEdit} />
-          </Field>
+          </FormFieldGroup>
         )}
       </FormCardGrid>
     ),
     routerFields: isKubernetes ? (
       <FormCardGrid title={t("clusters.sections.router")}>
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.config.kubernetes_config.router.access_mode"
           label={t("clusters.fields.accessMode")}
         >
-          <Select
+          <FormSelect
             options={[
               {
                 label: t("clusters.options.loadBalancer"),
@@ -326,31 +337,31 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
               // { label: t("clusters.options.ingress"), value: "Ingress" },
             ]}
           />
-        </Field>
+        </FormFieldGroup>
 
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.config.kubernetes_config.router.replicas"
           label={t("clusters.fields.replicas")}
         >
           <Input type="number" />
-        </Field>
+        </FormFieldGroup>
 
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.config.kubernetes_config.router.resources.cpu"
           label={t("common.fields.cpu")}
         >
           <Input />
-        </Field>
+        </FormFieldGroup>
 
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.config.kubernetes_config.router.resources.memory"
           label={t("common.fields.memory")}
         >
           <Input />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ) : null,
     modelCacheFields: (
@@ -383,7 +394,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
 
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <Field
+                      <FormFieldGroup
                         label={t("common.fields.name")}
                         {...form.register(
                           `spec.config.model_caches.${index}.name`,
@@ -399,7 +410,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                           )}
                           disabled={isModelCacheDisabled}
                         />
-                      </Field>
+                      </FormFieldGroup>
 
                       <div
                         className="space-y-2"
@@ -408,7 +419,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                         <Label className="text-sm font-medium">
                           {t("clusters.fields.modelCache.cacheType")}
                         </Label>
-                        <Select
+                        <FormSelect
                           options={
                             isKubernetes
                               ? [
@@ -447,7 +458,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                     <div className="grid grid-cols-2 gap-4">
                       {cacheType === "nfs" && (
                         <>
-                          <Field
+                          <FormFieldGroup
                             label={t("clusters.fields.modelCache.nfsServer")}
                             {...form.register(
                               `spec.config.model_caches.${index}.nfs.server`,
@@ -477,9 +488,9 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                               )}
                               disabled={isModelCacheDisabled}
                             />
-                          </Field>
+                          </FormFieldGroup>
 
-                          <Field
+                          <FormFieldGroup
                             label={t("clusters.fields.modelCache.cachePath")}
                             {...form.register(
                               `spec.config.model_caches.${index}.nfs.path`,
@@ -510,12 +521,12 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                               )}
                               disabled={isModelCacheDisabled}
                             />
-                          </Field>
+                          </FormFieldGroup>
                         </>
                       )}
 
                       {cacheType === "host_path" && (
-                        <Field
+                        <FormFieldGroup
                           label={t("clusters.fields.modelCache.cachePath")}
                           {...form.register(
                             `spec.config.model_caches.${index}.host_path.path`,
@@ -546,12 +557,12 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                             )}
                             disabled={isModelCacheDisabled}
                           />
-                        </Field>
+                        </FormFieldGroup>
                       )}
 
                       {cacheType === "pvc" && (
                         <>
-                          <Field
+                          <FormFieldGroup
                             label={t("clusters.fields.modelCache.storage")}
                             {...form.register(
                               `spec.config.model_caches.${index}.pvc.resources.requests.storage`,
@@ -575,9 +586,9 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                               )}
                               disabled={isModelCacheDisabled}
                             />
-                          </Field>
+                          </FormFieldGroup>
 
-                          <Field
+                          <FormFieldGroup
                             label={t(
                               "clusters.fields.modelCache.storageClassName",
                             )}
@@ -596,7 +607,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
                               )}
                               disabled={isModelCacheDisabled}
                             />
-                          </Field>
+                          </FormFieldGroup>
                         </>
                       )}
                     </div>
@@ -630,7 +641,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
     ),
     authFields: isKubernetes ? null : (
       <FormCardGrid title={t("clusters.sections.nodeAuthentication")}>
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.config.ssh_config.auth.ssh_user"
           label={t("clusters.fields.sshUser")}
@@ -639,8 +650,8 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
             placeholder={t("clusters.placeholders.sshUserExample")}
             disabled={isEdit}
           />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           name="spec.config.ssh_config.auth.ssh_private_key"
           label={t("clusters.fields.sshPrivateKey")}
@@ -649,7 +660,7 @@ export const useClusterForm = ({ action }: { action: "create" | "edit" }) => {
           }
         >
           <Textarea disabled={isEdit} />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
   };

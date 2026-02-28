@@ -1,7 +1,7 @@
-import FormCardGrid from "@/components/business/FormCardGrid";
-import { Field } from "@/components/theme";
 import { Input } from "@/components/ui/input";
-import type { UserProfile } from "@/types";
+import type { UserProfile } from "@/domains/user/types";
+import FormCardGrid from "@/foundation/components/FormCardGrid";
+import { FormFieldGroup } from "@/foundation/components/FormFieldGroup";
 import { useTranslation } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 
@@ -36,19 +36,27 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
     form,
     registerFields: isEdit ? null : (
       <FormCardGrid>
-        <Field {...form} name="name" label={translate("common.fields.name")}>
+        <FormFieldGroup
+          {...form}
+          name="name"
+          label={translate("common.fields.name")}
+        >
           <Input
             placeholder={translate("user_profiles.placeholders.userName")}
           />
-        </Field>
-        <Field {...form} name="email" label={translate("common.fields.email")}>
+        </FormFieldGroup>
+        <FormFieldGroup
+          {...form}
+          name="email"
+          label={translate("common.fields.email")}
+        >
           <Input
             placeholder={translate("user_profiles.placeholders.userEmail")}
             type="email"
           />
-        </Field>
+        </FormFieldGroup>
         <div className="col-span-2" />
-        <Field
+        <FormFieldGroup
           {...form}
           label={translate("common.fields.password")}
           {...form.register("password", {
@@ -59,8 +67,8 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
           })}
         >
           <Input type="password" />
-        </Field>
-        <Field
+        </FormFieldGroup>
+        <FormFieldGroup
           {...form}
           label={translate("user_profiles.fields.confirmPassword")}
           {...form.register("confirmPassword", {
@@ -77,12 +85,12 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
           })}
         >
           <Input type="password" />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     metadataFields: (
       <FormCardGrid title={translate("common.sections.basicInformation")}>
-        <Field
+        <FormFieldGroup
           {...form}
           name="metadata.name"
           label={translate("common.fields.name")}
@@ -91,18 +99,18 @@ export const useUserForm = ({ action }: { action: "create" | "edit" }) => {
             placeholder={translate("user_profiles.placeholders.userName")}
             disabled={isEdit}
           />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
     specFields: (
       <FormCardGrid>
-        <Field
+        <FormFieldGroup
           {...form}
           name="spec.email"
           label={translate("common.fields.email")}
         >
           <Input type="email" />
-        </Field>
+        </FormFieldGroup>
       </FormCardGrid>
     ),
   };

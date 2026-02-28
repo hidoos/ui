@@ -6,23 +6,23 @@ import {
 } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import {
-  BaseLayout,
-  DefaultLayout,
-  ModeToggle,
-  notificationProvider,
-} from "@/components/theme";
+import { BaseLayout } from "@/foundation/components/BaseLayout";
+import { DefaultLayout } from "@/foundation/components/DefaultLayout";
+import { ModeToggle } from "@/foundation/components/ModeToggle";
+import { notificationProvider } from "@/foundation/providers";
+import { dataProvider } from "@/foundation/providers/data-provider";
 import routerProvider, {
   CatchAllNavigate,
   NavigateToResource,
 } from "@refinedev/react-router";
 import { HashRouter, Outlet, Route, Routes } from "react-router-dom";
-import { dataProvider } from "./data-provider";
 
 import "./global.css";
 import "./variables.css";
 
-import { Logo } from "@/components/business/Logo";
+import { Logo } from "@/foundation/components/Logo";
+import { clientPostgrest } from "@/foundation/lib/api";
+import { useTranslation } from "@/foundation/lib/i18n";
 import {
   BookOpen,
   Cpu,
@@ -38,17 +38,15 @@ import {
   User,
   UserCheck,
 } from "lucide-react";
-import { clientPostgrest } from "./lib/api";
-import { useTranslation } from "./lib/i18n";
 
-import { authProvider } from "./auth-provider";
-import { AuthPage } from "./auth-provider/AuthPage";
-import { UserDropdown } from "./components/business/UserDropdown";
-import WorkspaceSelect from "./components/business/WorkspaceSelect";
-import { YamlExportButton } from "./components/business/YamlExportButton";
-import { YamlImportButton } from "./components/business/YamlImportButton";
+import { UserDropdown } from "@/foundation/components/UserDropdown";
+import WorkspaceSelect from "@/foundation/components/WorkspaceSelect";
+import { YamlExportButton } from "@/foundation/components/YamlExportButton";
+import { YamlImportButton } from "@/foundation/components/YamlImportButton";
+import { authProvider } from "@/foundation/providers/auth-provider";
 import { ApiKeysList } from "./pages/api-keys";
 import { ApiKeysShow } from "./pages/api-keys/show";
+import { AuthPage } from "./pages/auth/AuthPage";
 import {
   ClustersCreate,
   ClustersEdit,

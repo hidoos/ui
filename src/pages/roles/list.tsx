@@ -1,7 +1,8 @@
-import { ListPage, Table } from "@/components/theme";
-import { useMetadataColumns } from "@/components/theme/table/columns/metadata-columns";
-import { useRoleColumns } from "@/components/theme/table/columns/role-columns";
-import { defaultSorters } from "@/components/theme/table/sorter";
+import { ListPage } from "@/foundation/components/ListPage";
+import { Table } from "@/foundation/components/Table";
+import { defaultSorters } from "@/foundation/components/Table";
+import { useMetadataColumns } from "@/foundation/components/metadata-columns";
+import { useRoleColumns } from "./columns";
 
 export const RolesList = () => {
   const metadataColumns = useMetadataColumns();

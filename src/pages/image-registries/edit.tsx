@@ -1,4 +1,4 @@
-import { Form } from "@/components/theme";
+import { ResourceForm } from "@/foundation/components/ResourceForm";
 import { useImageRegistryForm } from "./use-image-registry-form";
 
 export const ImageRegistriesEdit = () => {
@@ -7,9 +7,9 @@ export const ImageRegistriesEdit = () => {
   });
 
   return (
-    <Form {...form}>
+    <ResourceForm {...form}>
       {metadataFields}
       {specFields}
-    </Form>
+    </ResourceForm>
   );
 };
