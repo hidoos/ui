@@ -1,8 +1,15 @@
 import { useTranslation } from "@/foundation/lib/i18n";
+import {
+  serializeToYaml,
+  transformEntityForExport,
+} from "@/foundation/lib/yaml-transform";
+import type {
+  ExportOptions,
+  ResourceEntity,
+} from "@/foundation/lib/yaml-transform";
 import type { Metadata } from "@/foundation/types/basic-types";
 import { useDataProvider, useResource } from "@refinedev/core";
-import * as yaml from "js-yaml";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ALL_WORKSPACES, useWorkspace } from "./use-workspace";
 
 // Available resource types for export
@@ -28,15 +35,6 @@ const CREDENTIAL_RESOURCES = [
 
 export type ExportableResource = (typeof EXPORTABLE_RESOURCES)[number];
 
-interface ResourceEntity {
-  id: string | number;
-  metadata: Metadata;
-  kind: string;
-  api_version: string;
-  spec?: Record<string, unknown>;
-  status?: Record<string, unknown>;
-}
-
 interface ResourceType {
   type: ExportableResource;
   label: string;
@@ -44,13 +42,6 @@ interface ResourceType {
   entities: ResourceEntity[];
   selectedEntities: Set<string>;
   loaded: boolean;
-}
-
-interface ExportOptions {
-  removeStatus: boolean;
-  removeIds: boolean;
-  removeTimestamps: boolean;
-  includeCredentials: boolean;
 }
 
 interface ExportProgress {
@@ -88,7 +79,7 @@ export const useYamlExport = () => {
     for (const type of EXPORTABLE_RESOURCES) {
       initial[type] = {
         type,
-        label: "", // Will be updated when exportableResources changes
+        label: "",
         selected: false,
         entities: [],
         selectedEntities: new Set(),
@@ -98,21 +89,27 @@ export const useYamlExport = () => {
     return initial;
   });
 
-  // Update labels when exportableResources changes
-  useMemo(() => {
-    setResourceTypes((prev) => {
-      const updated = { ...prev };
-      for (const resource of exportableResources) {
-        if (updated[resource.type]) {
-          updated[resource.type] = {
-            ...updated[resource.type],
-            label: resource.label,
-          };
-        }
-      }
-      return updated;
-    });
+  // Derive labels from exportableResources (pure memo, no side effects)
+  const labelMap = useMemo(() => {
+    const map: Partial<Record<ExportableResource, string>> = {};
+    for (const r of exportableResources) {
+      map[r.type] = r.label;
+    }
+    return map;
   }, [exportableResources]);
+
+  // Ref mirror for reading resourceTypes in async callbacks without stale closures
+  const resourceTypesRef = useRef(resourceTypes);
+  resourceTypesRef.current = resourceTypes;
+
+  // Merge labels at return boundary
+  const resourceTypesWithLabels = useMemo(() => {
+    const result = { ...resourceTypes };
+    for (const key of EXPORTABLE_RESOURCES) {
+      result[key] = { ...result[key], label: labelMap[key] || "" };
+    }
+    return result;
+  }, [resourceTypes, labelMap]);
 
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     removeStatus: true,
@@ -248,7 +245,7 @@ export const useYamlExport = () => {
   // Load entities for a resource type
   const loadEntities = useCallback(
     async (type: ExportableResource) => {
-      if (resourceTypes[type].loaded) return;
+      if (resourceTypesRef.current[type].loaded) return;
 
       setLoadingResources((prev) => new Set(prev).add(type));
 
@@ -273,7 +270,7 @@ export const useYamlExport = () => {
         });
       }
     },
-    [resourceTypes, fetchResourceEntities],
+    [fetchResourceEntities],
   );
 
   // Reset credential resources when includeCredentials changes
@@ -296,89 +293,29 @@ export const useYamlExport = () => {
     });
   }, []);
 
-  // Transform entity to YAML format
-  const transformEntityToYaml = useCallback(
-    (entity: ResourceEntity, options: ExportOptions) => {
-      const yamlEntity: Record<string, unknown> = {
-        ...(options.removeIds ? {} : { id: entity.id }),
-        apiVersion: entity.api_version,
-        kind: entity.kind,
-        metadata: { ...entity.metadata },
-      };
-
-      if (entity.spec) {
-        yamlEntity.spec = entity.spec;
-      }
-
-      if (entity.status && !options.removeStatus) {
-        yamlEntity.status = entity.status;
-      }
-
-      // Remove timestamps if requested
-      if (
-        options.removeTimestamps &&
-        yamlEntity.metadata &&
-        typeof yamlEntity.metadata === "object"
-      ) {
-        const metadata = yamlEntity.metadata as Record<string, unknown>;
-        delete metadata.creation_timestamp;
-        delete metadata.update_timestamp;
-        delete metadata.deletion_timestamp;
-      }
-
-      // Remove IDs if requested (but keep name)
-      if (
-        options.removeIds &&
-        yamlEntity.metadata &&
-        typeof yamlEntity.metadata === "object"
-      ) {
-        // Keep name but remove other auto-generated fields
-        const metadata = yamlEntity.metadata as Record<string, unknown>;
-        const { name, workspace, display_name, labels, annotations } =
-          metadata as {
-            name?: unknown;
-            workspace?: unknown;
-            display_name?: unknown;
-            labels?: unknown;
-            annotations?: unknown;
-            [key: string]: unknown;
-          };
-
-        yamlEntity.metadata = {
-          name,
-          workspace,
-          display_name,
-          labels,
-          annotations,
-        };
-      }
-
-      return yamlEntity;
-    },
-    [],
-  );
-
   // Generate YAML content
   const generateYamlContent = useCallback(async () => {
     setIsExporting(true);
+    const currentResourceTypes = resourceTypesRef.current;
     const selectedEntitiesData: Record<string, unknown>[] = [];
     let totalEntities = 0;
     let processedEntities = 0;
 
     // Count total selected entities
-    for (const resourceType of Object.values(resourceTypes)) {
+    for (const resourceType of Object.values(currentResourceTypes)) {
       totalEntities += resourceType.selectedEntities.size;
     }
 
     setExportProgress({ total: totalEntities, completed: 0 });
 
     try {
-      for (const resourceType of Object.values(resourceTypes)) {
+      for (const type of EXPORTABLE_RESOURCES) {
+        const resourceType = currentResourceTypes[type];
         if (resourceType.selectedEntities.size === 0) continue;
 
         setExportProgress((prev) => ({
           ...prev,
-          currentResource: resourceType.label,
+          currentResource: labelMap[type] || type,
         }));
 
         for (const entityId of resourceType.selectedEntities) {
@@ -386,8 +323,9 @@ export const useYamlExport = () => {
             (e) => String(e.id) === entityId,
           );
           if (entity) {
-            const yamlEntity = transformEntityToYaml(entity, exportOptions);
-            selectedEntitiesData.push(yamlEntity);
+            selectedEntitiesData.push(
+              transformEntityForExport(entity, exportOptions),
+            );
           }
 
           processedEntities++;
@@ -398,33 +336,12 @@ export const useYamlExport = () => {
         }
       }
 
-      // Generate YAML content
-      let yamlContent = "";
-      for (let index = 0; index < selectedEntitiesData.length; index++) {
-        const entity = selectedEntitiesData[index];
-        if (index > 0) yamlContent += "\n---\n";
-        yamlContent += yaml.dump(entity, {
-          indent: 2,
-          lineWidth: -1,
-          noRefs: true,
-          sortKeys: false,
-          // Use replacer function to filter out null/undefined values
-          replacer: (key: string, value: unknown) => {
-            // Skip null and undefined values
-            if (value === null || value === undefined) {
-              return undefined; // This will omit the key from output
-            }
-            return value;
-          },
-        });
-      }
-
-      return yamlContent;
+      return serializeToYaml(selectedEntitiesData);
     } finally {
       setIsExporting(false);
       setExportProgress((prev) => ({ ...prev, currentResource: undefined }));
     }
-  }, [resourceTypes, exportOptions, transformEntityToYaml]);
+  }, [labelMap, exportOptions]);
 
   // Statistics
   const statistics = useMemo(() => {
@@ -456,10 +373,9 @@ export const useYamlExport = () => {
   // Select all available resources
   const selectAllResources = useCallback(async () => {
     setIsSelectingAll(true);
-    const newResourceTypes = { ...resourceTypes };
 
     const resourcePromises = EXPORTABLE_RESOURCES.map(async (type) => {
-      if (!newResourceTypes[type].loaded) {
+      if (!resourceTypesRef.current[type].loaded) {
         setLoadingResources((prev) => new Set(prev).add(type));
 
         try {
@@ -479,7 +395,7 @@ export const useYamlExport = () => {
 
       return {
         type,
-        entities: newResourceTypes[type].entities,
+        entities: resourceTypesRef.current[type].entities,
         success: true,
       };
     });
@@ -487,29 +403,26 @@ export const useYamlExport = () => {
     try {
       const results = await Promise.all(resourcePromises);
 
-      results.forEach(({ type, entities, success }) => {
-        if (success) {
-          newResourceTypes[type] = {
-            ...newResourceTypes[type],
-            entities,
-            loaded: true,
+      setResourceTypes((prev) => {
+        const updated = { ...prev };
+        for (const { type, entities, success } of results) {
+          if (success) {
+            updated[type] = { ...updated[type], entities, loaded: true };
+          }
+          updated[type] = {
+            ...updated[type],
+            selected: true,
+            selectedEntities: new Set(
+              updated[type].entities.map((e) => String(e.id)),
+            ),
           };
         }
-
-        newResourceTypes[type] = {
-          ...newResourceTypes[type],
-          selected: true,
-          selectedEntities: new Set(
-            newResourceTypes[type].entities.map((e) => String(e.id)),
-          ),
-        };
+        return updated;
       });
-
-      setResourceTypes(newResourceTypes);
     } finally {
       setIsSelectingAll(false);
     }
-  }, [resourceTypes, fetchResourceEntities]);
+  }, [fetchResourceEntities]);
 
   // Check if all resources are selected
   const areAllResourcesSelected = useMemo(() => {
@@ -517,7 +430,7 @@ export const useYamlExport = () => {
   }, [resourceTypes]);
 
   return {
-    resourceTypes,
+    resourceTypes: resourceTypesWithLabels,
     exportOptions,
     isExporting,
     exportProgress,
