@@ -27,10 +27,12 @@ Test **logic**, not wiring. A good unit test covers code that can break in non-o
 
 - Type definitions, constants, re-exports
 - Thin wrappers that delegate to a library (e.g. `cn()` wrapping `clsx`)
-- Components that are mostly layout/composition — E2E covers those
+- Components that are **purely** layout/composition with no branching logic, state derivation, or conditional rendering
 - Anything where the test would just mirror the implementation
 
 > If a test only proves "the code does what the code does", it has no value.
+
+**Do NOT confuse "no useState/useEffect" with "no logic".** Form state managed by libraries (react-hook-form `useFieldArray`, `watch`, `setValue`, `register` with validation rules) IS state management. If a component has form wiring, validation rules, derived state, or conditional behavior, extract a headless hook and test it — don't dismiss it as "just a template".
 
 Writing tests is a review process. Assert **correct behavior**, not current behavior. If the implementation has a bug, fix the implementation — don't write a test that accommodates it.
 
