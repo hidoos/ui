@@ -7,7 +7,10 @@ import {
   Select as SelectUI,
   SelectValue,
 } from "@/components/ui/select";
-import { buildCurlCommand } from "@/domains/external-endpoint/lib/build-curl-command";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { buildAnthropicCurlCommand } from "@/domains/external-endpoint/lib/build-anthropic-curl-command";
+import { buildOpenAICurlCommand } from "@/domains/external-endpoint/lib/build-curl-command";
+import { buildEmbeddingCurlCommand } from "@/domains/external-endpoint/lib/build-embedding-curl-command";
 import { useCopyToClipboard } from "@/foundation/hooks/use-copy-to-clipboard";
 import { useWorkspace } from "@/foundation/hooks/use-workspace";
 import { useTranslation } from "@/foundation/lib/i18n";
@@ -24,8 +27,19 @@ export default function CurlExample({ serviceUrl, models }: CurlExampleProps) {
   const { t } = useTranslation();
   const { current: workspace } = useWorkspace();
   const [selectedModel, setSelectedModel] = useState(models[0] || "model-name");
+  const [activeTab, setActiveTab] = useState("openai");
   const { copy, copied } = useCopyToClipboard();
-  const curlCommand = buildCurlCommand(serviceUrl, selectedModel);
+
+  const curlCommand = (() => {
+    switch (activeTab) {
+      case "anthropic":
+        return buildAnthropicCurlCommand(serviceUrl, selectedModel);
+      case "embedding":
+        return buildEmbeddingCurlCommand(serviceUrl, selectedModel);
+      default:
+        return buildOpenAICurlCommand(serviceUrl, selectedModel);
+    }
+  })();
 
   return (
     <Card className="mt-4">
@@ -88,9 +102,26 @@ export default function CurlExample({ serviceUrl, models }: CurlExampleProps) {
                 : [part],
             )}
         </p>
-        <pre className="overflow-x-auto rounded-md bg-muted p-4 text-xs">
-          <code>{curlCommand}</code>
-        </pre>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="openai">
+              {t("external_endpoints.messages.curlExampleOpenai")}
+            </TabsTrigger>
+            <TabsTrigger value="anthropic">
+              {t("external_endpoints.messages.curlExampleAnthropic")}
+            </TabsTrigger>
+            <TabsTrigger value="embedding">
+              {t("external_endpoints.messages.curlExampleEmbedding")}
+            </TabsTrigger>
+          </TabsList>
+          {["openai", "anthropic", "embedding"].map((tab) => (
+            <TabsContent key={tab} value={tab}>
+              <pre className="overflow-x-auto rounded-md bg-muted p-4 text-xs">
+                <code>{curlCommand}</code>
+              </pre>
+            </TabsContent>
+          ))}
+        </Tabs>
       </CardContent>
     </Card>
   );

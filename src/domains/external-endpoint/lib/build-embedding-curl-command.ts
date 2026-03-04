@@ -1,12 +1,13 @@
-export function buildOpenAICurlCommand(
+export function buildEmbeddingCurlCommand(
   serviceUrl: string,
   modelName: string,
 ): string {
-  return `curl ${serviceUrl}/v1/chat/completions \\
+  return `curl ${serviceUrl}/v1/embeddings \\
   -H "Authorization: Bearer <your-neutree-api-key>" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "${modelName}",
-    "messages": [{"role": "user", "content": "Hello"}]
+    "input": "Your text string goes here",
+    "encoding_format": "float"
   }'`;
 }

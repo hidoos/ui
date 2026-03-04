@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CurlExample from "@/domains/external-endpoint/components/CurlExample";
 import ExternalEndpointStatus from "@/domains/external-endpoint/components/ExternalEndpointStatus";
-import { ROUTE_TYPE_LABELS } from "@/domains/external-endpoint/lib/constants";
+import { formatTimeout } from "@/domains/external-endpoint/lib/convert-timeout";
 import { getExposedModels } from "@/domains/external-endpoint/lib/get-exposed-models";
 import type { ExternalEndpoint } from "@/domains/external-endpoint/types";
 import { Loader } from "@/foundation/components/Loader";
 import MetadataCard from "@/foundation/components/MetadataCard";
+import ServiceUrls from "@/foundation/components/ServiceUrls";
 import { ShowPage } from "@/foundation/components/ShowPage";
 import { useTranslation } from "@/foundation/lib/i18n";
 import { useShow } from "@refinedev/core";
@@ -36,16 +37,13 @@ export const ExternalEndpointsShow = () => {
             <ExternalEndpointStatus {...record.status} />
           </ShowPage.Row>
           <div className="grid grid-cols-4 gap-8">
-            <ShowPage.Row title={t("external_endpoints.fields.routeType")}>
-              {ROUTE_TYPE_LABELS[record.spec?.route_type] ||
-                record.spec?.route_type}
+            <ShowPage.Row title={t("external_endpoints.fields.timeout")}>
+              {formatTimeout(record.spec?.timeout)}
             </ShowPage.Row>
             {record.status?.service_url && (
               <div className="col-span-3">
                 <ShowPage.Row title={t("external_endpoints.fields.serviceUrl")}>
-                  <code className="text-sm break-all">
-                    {record.status.service_url}
-                  </code>
+                  <ServiceUrls serviceUrl={record.status.service_url} />
                 </ShowPage.Row>
               </div>
             )}
@@ -64,21 +62,37 @@ export const ExternalEndpointsShow = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-8">
-              {upstream.upstream?.url && (
+              {upstream.endpoint_ref ? (
                 <div className="col-span-3">
                   <ShowPage.Row
-                    title={t("external_endpoints.fields.upstreamUrl")}
+                    title={t("external_endpoints.fields.endpointRef")}
                   >
                     <code className="text-sm break-all">
-                      {upstream.upstream.url}
+                      {upstream.endpoint_ref}
                     </code>
                   </ShowPage.Row>
                 </div>
-              )}
-              {upstream.auth && (
-                <ShowPage.Row title={t("external_endpoints.fields.authType")}>
-                  {upstream.auth.type}
-                </ShowPage.Row>
+              ) : (
+                <>
+                  {upstream.upstream?.url && (
+                    <div className="col-span-3">
+                      <ShowPage.Row
+                        title={t("external_endpoints.fields.upstreamUrl")}
+                      >
+                        <code className="text-sm break-all">
+                          {upstream.upstream.url}
+                        </code>
+                      </ShowPage.Row>
+                    </div>
+                  )}
+                  {upstream.auth && (
+                    <ShowPage.Row
+                      title={t("external_endpoints.fields.authType")}
+                    >
+                      {upstream.auth.type}
+                    </ShowPage.Row>
+                  )}
+                </>
               )}
             </div>
             {upstream.model_mapping &&

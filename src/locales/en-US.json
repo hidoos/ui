@@ -30,7 +30,9 @@
 			"permissions": "Permissions",
 			"permissionsCount": "{{count}} permissions",
 			"labels": "Labels",
-			"annotations": "Annotations"
+			"annotations": "Annotations",
+			"openaiUrl": "OpenAI Compatible URL",
+			"anthropicUrl": "Anthropic Compatible URL"
 		},
 		"sections": {
 			"basicInformation": "Basic Information"
@@ -565,7 +567,11 @@
 		"fields": {
 			"serviceUrl": "Service URL",
 			"routeType": "Route Type",
-			"timeout": "Timeout (seconds)",
+			"timeout": "Timeout",
+			"timeoutUnitSeconds": "Seconds",
+			"timeoutUnitMinutes": "Minutes",
+			"upstreamType": "Upstream Type",
+			"endpointRef": "Internal Endpoint",
 			"upstreamUrl": "Upstream URL",
 			"authType": "Auth Type",
 			"credential": "Credential",
@@ -575,21 +581,25 @@
 			"models": "Models"
 		},
 		"sections": {
+			"configuration": "Configuration",
 			"upstreams": "Upstreams",
 			"upstream": "Upstream {{index}}"
 		},
 		"placeholders": {
 			"endpointName": "External Endpoint Name",
 			"selectRouteType": "Select Route Type",
+			"selectEndpointRef": "Select an internal endpoint",
 			"upstreamUrl": "e.g. https://api.openai.com",
 			"selectAuthType": "Select Auth Type",
 			"credential": "API Key or Token",
-			"timeout": "e.g. 300",
+			"timeout": "e.g. 60",
 			"exposedModelName": "Model name exposed to clients",
 			"upstreamModelName": "Model name at upstream provider"
 		},
 		"options": {
-			"chatCompletions": "Chat Completions"
+			"chatCompletions": "Chat Completions",
+			"upstreamTypeExternal": "External",
+			"upstreamTypeEndpointRef": "Endpoint Ref"
 		},
 		"actions": {
 			"addUpstream": "Add Upstream",
@@ -600,14 +610,20 @@
 		"messages": {
 			"curlExample": "Curl Example",
 			"curlHint": "Replace <your-neutree-api-key> with your API key. You can create one at {{apiKeyPage}}.",
+			"curlExampleOpenai": "OpenAI",
+			"curlExampleAnthropic": "Anthropic",
+			"curlExampleEmbedding": "Embedding",
 			"credentialHidden": "Credential is hidden for security"
 		},
 		"validation": {
 			"nameRequired": "Name is required",
 			"routeTypeRequired": "Route type is required",
+			"endpointRefRequired": "Internal endpoint is required",
 			"upstreamUrlRequired": "Upstream URL is required",
 			"exposedModelRequired": "Exposed model name is required",
-			"upstreamModelRequired": "Upstream model name is required"
+			"upstreamModelRequired": "Upstream model name is required",
+			"duplicateModelKey": "Duplicate model key in this upstream",
+			"overlappingModelKeys": "Model key(s) {{keys}} already used in another upstream"
 		}
 	},
 	"user_profiles": {

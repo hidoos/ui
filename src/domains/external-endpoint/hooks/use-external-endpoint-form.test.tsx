@@ -21,12 +21,33 @@ vi.mock("@refinedev/react-hook-form", async () => {
   };
 });
 
+vi.mock("@refinedev/core", () => ({
+  useSelect: () => ({
+    query: { data: { data: [] }, isLoading: false },
+    options: [],
+  }),
+}));
+
 vi.mock("@/foundation/hooks/use-workspace", () => ({
   useWorkspace: () => ({ current: "default" }),
 }));
 
 vi.mock("@/foundation/components/WorkspaceField", () => ({
   default: React.forwardRef(() => <div data-testid="workspace-field-mock" />),
+}));
+
+vi.mock("@/domains/external-endpoint/components/TimeoutInput", () => ({
+  default: React.forwardRef(
+    (props: { value?: number; onChange?: (v: number) => void }, ref: any) => (
+      <input
+        ref={ref}
+        data-testid="timeout-input-mock"
+        type="number"
+        value={props.value ?? ""}
+        onChange={(e) => props.onChange?.(Number(e.target.value))}
+      />
+    ),
+  ),
 }));
 
 import { useExternalEndpointForm } from "./use-external-endpoint-form";
@@ -61,9 +82,12 @@ function EditForm() {
 
 describe("useExternalEndpointForm", () => {
   describe("create mode", () => {
-    it("renders name, upstream URL, auth type, and credential fields", () => {
+    it("renders name, upstream type, upstream URL, auth type, and credential fields", () => {
       render(<CreateForm />);
       expect(screen.getByLabelText("common.fields.name")).toBeTruthy();
+      expect(
+        screen.getByLabelText("external_endpoints.fields.upstreamType"),
+      ).toBeTruthy();
       expect(
         screen.getByLabelText("external_endpoints.fields.upstreamUrl"),
       ).toBeTruthy();
@@ -111,6 +135,11 @@ describe("useExternalEndpointForm", () => {
       expect((nameInput as HTMLInputElement).disabled).toBe(false);
     });
 
+    it("renders timeout field", () => {
+      render(<CreateForm />);
+      expect(screen.getByTestId("timeout-input-mock")).toBeTruthy();
+    });
+
     it("adds a new upstream when add button is clicked", async () => {
       render(<CreateForm />);
       expect(
@@ -153,6 +182,24 @@ describe("useExternalEndpointForm", () => {
           screen.getAllByLabelText("external_endpoints.fields.upstreamUrl"),
         ).toHaveLength(1);
       });
+    });
+
+    it("default upstream renders external type fields", () => {
+      render(<CreateForm />);
+      // External type fields should be visible
+      expect(
+        screen.getByLabelText("external_endpoints.fields.upstreamUrl"),
+      ).toBeTruthy();
+      expect(
+        screen.getByLabelText("external_endpoints.fields.authType"),
+      ).toBeTruthy();
+      expect(
+        screen.getByLabelText("external_endpoints.fields.credential"),
+      ).toBeTruthy();
+      // Endpoint ref field should NOT be visible
+      expect(
+        screen.queryByLabelText("external_endpoints.fields.endpointRef"),
+      ).toBeNull();
     });
   });
 
