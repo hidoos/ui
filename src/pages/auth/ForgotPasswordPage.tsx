@@ -1,3 +1,6 @@
+import type { ForgotPasswordFormTypes } from "@refinedev/core";
+import { useActiveAuthProvider, useForgotPassword } from "@refinedev/core";
+import type React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,16 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { cn } from "@/foundation/lib/utils";
-import {
-  useActiveAuthProvider,
-  useForgotPassword,
-  useTranslate,
-} from "@refinedev/core";
-import type { ForgotPasswordFormTypes } from "@refinedev/core";
-import type React from "react";
-import { ThemedTitle } from "./ThemedTitle";
 import { authStyles } from "./styles";
+import { ThemedTitle } from "./ThemedTitle";
 
 type ForgotPasswordPageProps = {
   contentProps?: React.HTMLAttributes<HTMLDivElement>;
@@ -39,7 +36,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
   title,
   mutationVariables = {},
 }) => {
-  const translate = useTranslate();
+  const { t: translate } = useTranslation();
   const authProvider = useActiveAuthProvider();
   const { mutate: forgotPassword, isLoading } =
     useForgotPassword<ForgotPasswordFormTypes>({
@@ -60,7 +57,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
     >
       <CardHeader className="pb-0 pt-6">
         <CardTitle className="text-center text-2xl font-bold text-[hsl(var(--foreground))]">
-          {translate("pages.forgotPassword.title", "Forgot Password")}
+          {translate("pages.forgotPassword.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-8 pt-6">
@@ -77,17 +74,12 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
         >
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">
-                {translate("common.fields.email", "Email")}
-              </Label>
+              <Label htmlFor="email">{translate("common.fields.email")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder={translate(
-                  "pages.auth.emailPlaceholder",
-                  "you@example.com",
-                )}
+                placeholder={translate("pages.auth.emailPlaceholder")}
                 required
                 className="h-10"
               />
@@ -98,23 +90,20 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
               disabled={isLoading}
             >
               {isLoading
-                ? translate("pages.auth.loading", "Loading...")
-                : translate(
-                    "pages.forgotPassword.buttons.submit",
-                    "Send Reset Instructions",
-                  )}
+                ? translate("pages.auth.loading")
+                : translate("pages.forgotPassword.buttons.submit")}
             </Button>
           </div>
         </form>
       </CardContent>
       <CardFooter className="pb-6 px-8 flex justify-center">
         <div className="text-sm text-center">
-          {translate("pages.forgotPassword.buttons.backLogin", "Back to login")}{" "}
+          {translate("pages.forgotPassword.buttons.backLogin")}{" "}
           <a
             href="/login"
             className="font-medium text-[hsl(var(--primary))] hover:underline"
           >
-            {translate("pages.auth.signIn", "Sign in")}
+            {translate("pages.auth.signIn")}
           </a>
         </div>
       </CardFooter>

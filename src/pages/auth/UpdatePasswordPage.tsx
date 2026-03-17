@@ -1,18 +1,15 @@
+import type { UpdatePasswordFormTypes } from "@refinedev/core";
+import { useActiveAuthProvider, useUpdatePassword } from "@refinedev/core";
+import type React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "@/foundation/lib/i18n";
 import { cn } from "@/foundation/lib/utils";
-import {
-  useActiveAuthProvider,
-  useTranslate,
-  useUpdatePassword,
-} from "@refinedev/core";
-import type { UpdatePasswordFormTypes } from "@refinedev/core";
-import type React from "react";
-import { toast } from "sonner";
-import { ThemedTitle } from "./ThemedTitle";
 import { validatePasswordMatch } from "./lib/validate-password-match";
+import { ThemedTitle } from "./ThemedTitle";
 
 type UpdatePasswordPageProps = {
   contentProps?: React.HTMLAttributes<HTMLDivElement>;
@@ -34,7 +31,7 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
   title,
   mutationVariables,
 }) => {
-  const translate = useTranslate();
+  const { t: translate } = useTranslation();
   const authProvider = useActiveAuthProvider();
   const { mutate: updatePassword, isLoading } =
     useUpdatePassword<UpdatePasswordFormTypes>({
@@ -55,7 +52,7 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
     >
       <CardHeader className="pb-0 pt-6">
         <CardTitle className="text-center text-2xl font-bold text-[hsl(var(--foreground))]">
-          {translate("pages.updatePassword.title", "Set New Password")}
+          {translate("pages.updatePassword.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-8 pt-6 pb-6">
@@ -68,10 +65,7 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
 
             if (!validatePasswordMatch(password, confirmPassword)) {
               toast.error(
-                translate(
-                  "pages.auth.errors.confirmPasswordNotMatch",
-                  "Passwords do not match",
-                ),
+                translate("pages.auth.errors.confirmPasswordNotMatch"),
               );
               return;
             }
@@ -87,10 +81,7 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">
-                {translate(
-                  "pages.updatePassword.fields.password",
-                  "New Password",
-                )}
+                {translate("pages.updatePassword.fields.password")}
               </Label>
               <Input
                 id="password"
@@ -104,10 +95,7 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
-                {translate(
-                  "pages.updatePassword.fields.confirmPassword",
-                  "Confirm New Password",
-                )}
+                {translate("pages.updatePassword.fields.confirmPassword")}
               </Label>
               <Input
                 id="confirmPassword"
@@ -124,8 +112,8 @@ export const UpdatePasswordPage: React.FC<UpdatePasswordPageProps> = ({
               disabled={isLoading}
             >
               {isLoading
-                ? translate("pages.auth.loading", "Loading...")
-                : translate("pages.updatePassword.buttons.submit", "Update")}
+                ? translate("pages.auth.loading")
+                : translate("pages.updatePassword.buttons.submit")}
             </Button>
           </div>
         </form>
