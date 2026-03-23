@@ -1,11 +1,4 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
-import dotenv from "dotenv";
-
-dotenv.config({
-  path: resolve(dirname(fileURLToPath(import.meta.url)), "e2e/.env"),
-});
 
 export default defineConfig({
   testDir: "./e2e/tests",
@@ -17,7 +10,7 @@ export default defineConfig({
   outputDir: "e2e/test-results",
 
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: process.env.BASE_URL || "http://localhost:5173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     actionTimeout: 10_000,

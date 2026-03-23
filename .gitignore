@@ -50,3 +50,4 @@ e2e/profiles/*
 .agents/
 .claude/
 .mcp.json
+skills-lock.json
