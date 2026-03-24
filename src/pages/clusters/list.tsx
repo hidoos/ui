@@ -1,5 +1,11 @@
 import ClusterStatus from "@/domains/cluster/components/ClusterStatus";
 import ClusterType from "@/domains/cluster/components/ClusterType";
+import {
+  ClusterUpgradeAction,
+  ClusterUpgradeProvider,
+} from "@/domains/cluster/components/ClusterUpgradeAction";
+import { ClusterUpgradeTip } from "@/domains/cluster/components/ClusterUpgradeTip";
+import type { Cluster } from "@/domains/cluster/types";
 import { ListPage } from "@/foundation/components/ListPage";
 import { useMetadataColumns } from "@/foundation/components/metadata-columns";
 import { ShowButton } from "@/foundation/components/ShowButton";
@@ -9,9 +15,12 @@ import type { BaseStatus } from "@/foundation/types/basic-types";
 
 export const ClustersList = () => {
   const { t } = useTranslation();
-  const metadataColumns = useMetadataColumns();
+  const metadataColumns = useMetadataColumns({
+    extraActions: (row) => <ClusterUpgradeAction cluster={row as Cluster} />,
+  });
 
   return (
+    <ClusterUpgradeProvider>
     <ListPage>
       <Table
         enableSorting
@@ -31,6 +40,33 @@ export const ClustersList = () => {
           enableHiding
           cell={({ getValue }) => {
             return <ClusterStatus {...(getValue() as unknown as BaseStatus)} />;
+          }}
+        />
+        <Table.Column
+          header={t("common.fields.version")}
+          accessorKey="status.version"
+          id="version"
+          enableHiding
+          cell={({ row }) => {
+            const cluster = row.original as Cluster;
+            const version = cluster.status?.version;
+            if (!version) return "-";
+            if (cluster.status?.phase === "Upgrading" && cluster.spec.version) {
+              return (
+                <span className="inline-flex items-center">
+                  {version}{" "}
+                  <span className="text-muted-foreground">
+                    &rarr; {cluster.spec.version}
+                  </span>
+                </span>
+              );
+            }
+            return (
+              <span className="inline-flex items-center">
+                {version}
+                <ClusterUpgradeTip cluster={cluster} />
+              </span>
+            );
           }}
         />
         <Table.Column
@@ -69,5 +105,6 @@ export const ClustersList = () => {
         {metadataColumns.action}
       </Table>
     </ListPage>
+    </ClusterUpgradeProvider>
   );
 };
