@@ -1,12 +1,14 @@
 import { useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import ModelMappingEditor from "@/domains/external-endpoint/components/ModelMappingEditor";
+import TestConnectivityButton from "@/domains/external-endpoint/components/TestConnectivityButton";
 import TimeoutInput from "@/domains/external-endpoint/components/TimeoutInput";
+import { useTestConnectivity } from "@/domains/external-endpoint/hooks/use-test-connectivity";
 import { cleanUpstreamsForSubmit } from "@/domains/external-endpoint/lib/clean-upstreams-for-submit";
 import type { UpstreamType } from "@/domains/external-endpoint/lib/derive-upstream-type";
 import { deriveUpstreamType } from "@/domains/external-endpoint/lib/derive-upstream-type";
@@ -70,6 +72,12 @@ export const useExternalEndpointForm = ({
   });
 
   const isEdit = action === "edit";
+
+  // Models returned by test connectivity, keyed by upstream index
+  const [availableModelsMap, setAvailableModelsMap] = useState<
+    Record<number, string[]>
+  >({});
+  const connectivity = useTestConnectivity();
 
   // Derive upstream types from form data — no separate state needed
   const upstreams = form.watch("spec.upstreams");
@@ -253,6 +261,32 @@ export const useExternalEndpointForm = ({
                           )}
                         />
                       </FormFieldGroup>
+                      <div className="col-span-4 flex items-center">
+                        <TestConnectivityButton
+                          testing={connectivity.testing}
+                          result={connectivity.result}
+                          onTest={async () => {
+                            const url =
+                              form.getValues(
+                                `spec.upstreams.${index}.upstream.url`,
+                              ) ?? "";
+                            const credential =
+                              form.getValues(
+                                `spec.upstreams.${index}.auth.credential`,
+                              ) ?? "";
+                            const data = await connectivity.test(
+                              url,
+                              credential,
+                            );
+                            if (data.success && data.models?.length) {
+                              setAvailableModelsMap((prev) => ({
+                                ...prev,
+                                [index]: data.models!,
+                              }));
+                            }
+                          }}
+                        />
+                      </div>
                     </>
                   ) : (
                     <FormFieldGroup
@@ -293,7 +327,9 @@ export const useExternalEndpointForm = ({
                       },
                     }}
                   >
-                    <ModelMappingEditor />
+                    <ModelMappingEditor
+                      availableModels={availableModelsMap[index]}
+                    />
                   </FormFieldGroup>
                 </div>
               </CardContent>
