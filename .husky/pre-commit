@@ -1,3 +1,4 @@
+yarn typecheck
 yarn dep-check
 yarn knip
 yarn lint-staged

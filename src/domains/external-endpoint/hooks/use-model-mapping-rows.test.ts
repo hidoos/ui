@@ -263,7 +263,9 @@ describe("useModelMappingRows", () => {
       const { result, rerender } = renderHook(
         ({ value }: { value: Record<string, string> }) =>
           useModelMappingRows({ value }),
-        { initialProps: { value: { a: "1" } } },
+        {
+          initialProps: { value: { a: "1" } as Record<string, string> },
+        },
       );
 
       rerender({ value: { b: "2", c: "3" } });

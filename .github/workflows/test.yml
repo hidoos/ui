@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Type check
+        run: yarn typecheck
+
       - name: Check layer boundaries
         run: yarn dep-check
 
