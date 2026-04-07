@@ -274,10 +274,28 @@ export const useExternalEndpointForm = ({
                               form.getValues(
                                 `spec.upstreams.${index}.auth.credential`,
                               ) ?? "";
+                            const name = isEdit
+                              ? (form.getValues("metadata.name") ?? "")
+                              : "";
+                            const storedUpstreamUrl = isEdit
+                              ? ((
+                                  form.refineCore.query?.data?.data as
+                                    | ExternalEndpoint
+                                    | undefined
+                                )?.spec?.upstreams?.[index]?.upstream?.url ??
+                                "")
+                              : "";
                             const data = await connectivity.test(index, {
                               type: "external",
                               url,
                               credential,
+                              ...(isEdit
+                                ? {
+                                    name,
+                                    workspace: currentWorkspace,
+                                    stored_upstream_url: storedUpstreamUrl,
+                                  }
+                                : {}),
                             });
                             if (data.success && data.models?.length) {
                               setAvailableModelsMap((prev) => ({
