@@ -1,17 +1,35 @@
-import { ALL_PERMISSIONS } from "@/domains/role/types";
 import { useCallback, useMemo } from "react";
+import { ALL_PERMISSIONS } from "@/domains/role/types";
 
 export type PermissionDependencyRule = {
   action: string; // "create" (all resources) or "endpoint:create" (specific)
   deps: string[]; // "read" (same resource) or "workspace:read" (specific)
 };
 
+/** Resources scoped to a workspace — their write actions depend on workspace:read.
+ *  Keep in sync with App.tsx resource definitions (meta.workspaced: true).
+ *  A guard test in use-permission-dependencies.test.ts will fail if this drifts.
+ *  @see use-permission-dependencies.test.ts "WORKSPACED_RESOURCES guard" */
+export const WORKSPACED_RESOURCES = new Set([
+  "cluster",
+  "endpoint",
+  "external_endpoint",
+  "image_registry",
+  "model_registry",
+  "model_catalog",
+  "engine",
+]);
+
 const ALL_RULES: PermissionDependencyRule[] = [
   { action: "create", deps: ["read"] },
   { action: "update", deps: ["read"] },
   { action: "delete", deps: ["read"] },
+  // model:delete/push/pull depend on model_registry:read, NOT model:read
+  { action: "model:delete", deps: ["model_registry:read"] },
   { action: "model:push", deps: ["model_registry:read"] },
   { action: "model:pull", deps: ["model_registry:read"] },
+  // model:read depends on model_registry:read
+  { action: "model:read", deps: ["model_registry:read"] },
 ];
 
 type PermissionsTreeData = Record<
@@ -71,22 +89,49 @@ function ruleKeyMatches(
   return parsed.action === action;
 }
 
+/** Check if a resource-specific rule exists for a given resource and action */
+function hasSpecificRule(
+  resource: string,
+  action: string,
+  rules: PermissionDependencyRule[],
+): boolean {
+  return rules.some((r) => {
+    const parsed = parseRuleKey(r.action);
+    return parsed.resource === resource && parsed.action === action;
+  });
+}
+
 /**
  * Get all dependency permissions that should be auto-selected when
  * checking resource:action. Returns full permission strings.
+ *
+ * When a resource-specific rule exists (e.g. "model:delete"), generic
+ * rules for the same action (e.g. "delete") are skipped for that resource.
  */
 function getDepsForAction(
   resource: string,
   action: string,
   rules: PermissionDependencyRule[],
+  workspacedResources: Set<string> = WORKSPACED_RESOURCES,
 ): string[] {
   const deps: string[] = [];
+  const skipGeneric = hasSpecificRule(resource, action, rules);
   for (const rule of rules) {
     if (!ruleKeyMatches(rule.action, resource, action)) continue;
+    // Skip generic rules when a resource-specific rule exists
+    if (skipGeneric && parseRuleKey(rule.action).resource === null) continue;
     for (const dep of rule.deps) {
       const parsed = parseRuleKey(dep);
       deps.push(`${parsed.resource ?? resource}:${parsed.action}`);
     }
+  }
+  // Workspaced resources implicitly depend on workspace:read for write actions
+  if (
+    workspacedResources.has(resource) &&
+    action !== "read" &&
+    resource !== "workspace"
+  ) {
+    deps.push("workspace:read");
   }
   return [...new Set(deps)];
 }
@@ -100,6 +145,7 @@ function findActionDependents(
   resource: string,
   action: string,
   rules: PermissionDependencyRule[],
+  workspacedResources: Set<string> = WORKSPACED_RESOURCES,
 ): string[] {
   const dependents: string[] = [];
   const target = `${resource}:${action}`;
@@ -107,9 +153,11 @@ function findActionDependents(
   for (const selectedPerm of selectedPermissions) {
     if (selectedPerm === target) continue;
     const [selResource, selAction] = selectedPerm.split(":");
+    const skipGeneric = hasSpecificRule(selResource, selAction, rules);
 
     for (const rule of rules) {
       if (!ruleKeyMatches(rule.action, selResource, selAction)) continue;
+      if (skipGeneric && parseRuleKey(rule.action).resource === null) continue;
       for (const dep of rule.deps) {
         const parsed = parseRuleKey(dep);
         const depResource = parsed.resource ?? selResource;
@@ -117,6 +165,15 @@ function findActionDependents(
           dependents.push(selectedPerm);
         }
       }
+    }
+    // Implicit workspace:read dependency for workspaced write actions
+    if (
+      resource === "workspace" &&
+      action === "read" &&
+      workspacedResources.has(selResource) &&
+      selAction !== "read"
+    ) {
+      dependents.push(selectedPerm);
     }
   }
 

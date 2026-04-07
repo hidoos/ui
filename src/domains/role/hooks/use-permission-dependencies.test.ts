@@ -1,8 +1,11 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   type PermissionDependencyRule,
   usePermissionDependencies,
+  WORKSPACED_RESOURCES,
 } from "./use-permission-dependencies";
 
 const TEST_PERMISSIONS = [
@@ -10,11 +13,26 @@ const TEST_PERMISSIONS = [
   "endpoint:create",
   "endpoint:update",
   "endpoint:delete",
+  "cluster:read",
+  "cluster:create",
+  "cluster:update",
+  "cluster:delete",
+  "external_endpoint:read",
+  "external_endpoint:create",
+  "external_endpoint:update",
+  "external_endpoint:delete",
+  "image_registry:read",
+  "image_registry:create",
+  "image_registry:update",
+  "image_registry:delete",
+  "model_registry:read",
+  "model_registry:create",
+  "model_registry:update",
+  "model_registry:delete",
   "model:read",
   "model:push",
   "model:pull",
   "model:delete",
-  "model_registry:read",
   "workspace:read",
   "workspace:create",
   "workspace:update",
@@ -340,7 +358,8 @@ describe("usePermissionDependencies", () => {
 
   describe("cross-resource dependencies", () => {
     const crossRules: PermissionDependencyRule[] = [
-      { action: "endpoint:create", deps: ["workspace:read"] },
+      // Resource-specific rule overrides generic "create" for endpoint
+      { action: "endpoint:create", deps: ["read", "workspace:read"] },
       { action: "create", deps: ["read"] },
     ];
 
@@ -514,6 +533,224 @@ describe("usePermissionDependencies", () => {
     });
   });
 
+  describe("resource-specific rule overrides generic rule", () => {
+    const overrideRules: PermissionDependencyRule[] = [
+      { action: "create", deps: ["read"] },
+      { action: "delete", deps: ["read"] },
+      { action: "model:delete", deps: ["model_registry:read"] },
+    ];
+
+    it("should use specific rule deps instead of generic for matching resource", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          rules: overrideRules,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("model", "delete");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("model:delete");
+      expect(called).toContain("model_registry:read");
+      // generic delete→read should NOT apply for model
+      expect(called).not.toContain("model:read");
+    });
+
+    it("should still apply generic rule for resources without specific override", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          rules: overrideRules,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("endpoint", "delete");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("endpoint:delete");
+      expect(called).toContain("endpoint:read"); // generic delete→read still applies
+    });
+
+    it("should not lock model:read when model:delete is selected (override has no model:read dep)", () => {
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: ["model:read", "model:delete", "model_registry:read"],
+          allPermissions: TEST_PERMISSIONS,
+          rules: overrideRules,
+        }),
+      );
+
+      // model:read should NOT be locked by model:delete
+      expect(result.current.getActionDependents("model", "read")).toEqual([]);
+    });
+
+    it("should lock model_registry:read when model:delete is selected", () => {
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: ["model:delete", "model_registry:read"],
+          allPermissions: TEST_PERMISSIONS,
+          rules: overrideRules,
+        }),
+      );
+
+      expect(
+        result.current.getActionDependents("model_registry", "read"),
+      ).toEqual(["model:delete"]);
+    });
+  });
+
+  describe("default rules - NEU-394/395/396", () => {
+    // These tests use default ALL_RULES to verify the actual business rules
+
+    it("NEU-396: model:delete should auto-select model_registry:read, not model:read", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("model", "delete");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("model:delete");
+      expect(called).toContain("model_registry:read");
+      expect(called).not.toContain("model:read");
+    });
+
+    it("NEU-396: model:push should not auto-select model:read", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("model", "push");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("model:push");
+      expect(called).toContain("model_registry:read");
+      expect(called).not.toContain("model:read");
+    });
+
+    it("NEU-396: model:pull should not auto-select model:read", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("model", "pull");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("model:pull");
+      expect(called).toContain("model_registry:read");
+      expect(called).not.toContain("model:read");
+    });
+
+    it("NEU-395: model:read should auto-select model_registry:read", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("model", "read");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("model:read");
+      expect(called).toContain("model_registry:read");
+    });
+
+    it.each([
+      "endpoint",
+      "cluster",
+      "external_endpoint",
+      "image_registry",
+      "model_registry",
+    ])("NEU-394: %s:create should auto-select workspace:read", (resource) => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission(resource, "create");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain(`${resource}:create`);
+      expect(called).toContain(`${resource}:read`);
+      expect(called).toContain("workspace:read");
+    });
+
+    it("NEU-394: workspace:read should be locked by any workspaced write action", () => {
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: ["workspace:read", "cluster:read", "cluster:delete"],
+          allPermissions: TEST_PERMISSIONS,
+        }),
+      );
+
+      expect(result.current.getActionDependents("workspace", "read")).toContain(
+        "cluster:delete",
+      );
+    });
+
+    it("NEU-394: workspaced resource:read should NOT depend on workspace:read", () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        usePermissionDependencies({
+          value: [],
+          allPermissions: TEST_PERMISSIONS,
+          onChange,
+        }),
+      );
+
+      act(() => {
+        result.current.togglePermission("endpoint", "read");
+      });
+
+      const called = onChange.mock.calls[0][0] as string[];
+      expect(called).toContain("endpoint:read");
+      expect(called).not.toContain("workspace:read");
+    });
+  });
+
   describe("permissionTree and sortedResources", () => {
     it("should parse permissions into tree structure", () => {
       const { result } = renderHook(() =>
@@ -540,11 +777,61 @@ describe("usePermissionDependencies", () => {
       );
 
       expect(result.current.sortedResources).toEqual([
+        "cluster",
         "endpoint",
+        "external_endpoint",
+        "image_registry",
         "model",
         "model_registry",
         "workspace",
       ]);
+    });
+  });
+
+  describe("WORKSPACED_RESOURCES guard", () => {
+    /**
+     * Guard test: ensures WORKSPACED_RESOURCES stays in sync with App.tsx.
+     *
+     * How it works:
+     *   Reads App.tsx as plain text, uses a regex to find resource blocks
+     *   with `workspaced: true`, converts plural names to singular permission
+     *   prefixes (e.g. "image_registries" → "image_registry"), and compares
+     *   the result with the exported WORKSPACED_RESOURCES set.
+     *
+     * When this test fails:
+     *   1. If you added/removed a workspaced resource in App.tsx — update
+     *      WORKSPACED_RESOURCES in use-permission-dependencies.ts to match.
+     *   2. If the regex no longer parses App.tsx correctly (e.g. the resource
+     *      definition format changed) — fix the regex below, or as a last
+     *      resort replace the parsing logic with a hardcoded expected list
+     *      and add a comment pointing back to App.tsx.
+     */
+    it("should match workspaced resources defined in App.tsx", () => {
+      const appSource = readFileSync(
+        resolve(__dirname, "../../../App.tsx"),
+        "utf-8",
+      );
+
+      // Match each resource block: { name: "xxx", ... workspaced: true ... }
+      const resourceBlocks = appSource.matchAll(
+        /\{\s*name:\s*"(\w+)"[\s\S]*?\}/g,
+      );
+
+      const workspacedFromApp: string[] = [];
+      for (const match of resourceBlocks) {
+        const [block, name] = match;
+        if (block.includes("workspaced: true")) {
+          // Convert plural resource name to singular permission prefix:
+          // "image_registries" → "image_registry", "clusters" → "cluster"
+          const singular = name.replace(/ies$/, "y").replace(/s$/, "");
+          workspacedFromApp.push(singular);
+        }
+      }
+
+      // api_key has no corresponding permissions — exclude from comparison
+      const filtered = workspacedFromApp.filter((r) => r !== "api_key");
+
+      expect([...WORKSPACED_RESOURCES].sort()).toEqual(filtered.sort());
     });
   });
 });
